@@ -1,0 +1,66 @@
+table.hovertable {
+    font-family: verdana,arial,sans-serif;
+    font-size:14px;
+    color:#555555;
+    border-width: 1px;
+    border-color: #999999;
+    border-collapse: collapse;
+}
+
+table.hovertable caption {
+    font-family: verdana,arial,sans-serif;
+    font-size:20px;
+    color:#333333;
+}
+table.hovertable th {
+    background-color:#87AAAE;
+    border-width: 1px;
+    padding: 8px;
+    border-style: solid;
+    border-color: #a9c6c9;
+    color: black;
+    padding-right: 15px;
+}
+table.hovertable tr {
+    /*background-color:#B8B9BB;*/
+    background-color:#F6F6F6;
+    /*color: #B8B9BB;*/
+}
+table.hovertable tr.best {
+    background-color:#F6F6F6;
+    color: black;
+}
+table.hovertable td {
+    border-width: 0px;
+    padding: 8px;
+    /*border-style: solid;*/
+    border-color: #a9c6c9;
+    white-space: nowrap;
+}
+table.hovertable tr:hover {
+      background-color: #DDECEF;
+      color: black;
+}
+
+.unhover {
+    background-color:#F6F6F6;
+}
+
+.border-top { border-top: 1px solid grey; }
+
+.bar {
+ position: fixed;
+ top: 0;
+ right: 0;
+ z-index: 999;
+ display: block;
+}
+
+
+
+/* ROUNDED TWO */
+.roundedTwo {
+    width: 28px;
+    height: 28px;
+    position: relative;
+}
