@@ -10,9 +10,10 @@ from AIP_clusters.single_cluster import single_cluster
 from AIP_clusters.edit_tables import edit_tables
 from AIP_clusters.edit_table import edit_table, edit_table_update, \
                                     list_table, \
-                                    edit_key, edit_key_update
+                                    edit_table_key, edit_table_key_update
+from AIP_clusters.key_list import key_list
 from AIP_clusters.vo_cone_search import vo_cone_search
-from AIP_clusters.globals import get_key_class_list, get_key_description
+from AIP_clusters.globals import get_key_class_list, get_key_description, get_table_columns
 
 def error_page_404(status, message, traceback, version):
     return "Error %s - Page does not exist yet. It might appear later!" % status
@@ -36,16 +37,20 @@ class HelloWorld(object):
         return edit_table(table)
 
     @cherrypy.expose
-    def edit_key(self, table, key, key_class, is_new=0):
-        return edit_key(table, key, key_class, is_new)
+    def key_list(self):
+        return key_list()
 
     @cherrypy.expose
-    def edit_key_update(self, table, mode, key, key_class, description,
-                    reference_column, error_column_low, error_column_high,
-                    comment):
-        edit_key_update(table, mode, key, key_class, description,
-                    reference_column, error_column_low, error_column_high,
-                    comment)
+    def edit_table_key(self, table, key, key_class, is_new=0):
+        return edit_table_key(table, key, key_class, is_new)
+
+    @cherrypy.expose
+    def edit_table_key_update(self, table, mode, key, key_class,
+                              reference_column, error_column_low,
+                              error_column_high, comment):
+        edit_table_key_update(table, mode, key, key_class,
+                              reference_column, error_column_low,
+                              error_column_high, comment)
         raise cherrypy.InternalRedirect('edit_table?table=%s' % str(table))
 
     @cherrypy.expose
@@ -57,6 +62,10 @@ class HelloWorld(object):
         return ','.join(map(str, get_key_description(key, key_class)))
 
     @cherrypy.expose
+    def get_table_columns(self, table):
+        return ','.join(map(str, get_table_columns(table)))
+
+    @cherrypy.expose
     def list_table(self, table):
         return list_table(table)
 
@@ -65,8 +74,8 @@ class HelloWorld(object):
         return vo_cone_search(ra, decl, radius)
 
     @cherrypy.expose
-    def edit_table_update(self, table, description, uid_column):
-        return edit_table_update(table, description, uid_column)
+    def edit_table_update(self, table, description, uid_column, brief_columns):
+        return edit_table_update(table, description, uid_column, brief_columns)
 
 if __name__ == '__main__':
    cherrypy.quickstart(HelloWorld(), config="aipccd.conf")

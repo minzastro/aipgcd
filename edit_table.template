@@ -19,6 +19,8 @@
           <input type="text" name="description" value="{{description}}" /><br>
           <label for="uid">Unique column: </label>
           <input type="text" name="uid_column" value="{{uid_column}}"/><br>
+          <label for="brief_columns">List of columns for brief mode: </label>
+          <input type="text" name="brief_columns" value="{{brief_columns}}"/><br>
           <button type="submit">Submit changes</button>
     </form>
 

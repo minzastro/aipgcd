@@ -27,11 +27,15 @@ def null_condition(column, value):
         return '%s = %s' % (column, value)
 
 def nullify(value):
-    if value is None or value == 'None' or value == 'none' or str(value) == '':
+    if value is None or value == 'None' or value == 'none':
         return 'null'
     elif isinstance(value, str):
+        if value == '':
+            return 'null'
         return '"%s"' % value
     elif isinstance(value, unicode):
+        if value == u'':
+            return 'null'
         return u'"%s"' % value #.encode('ascii', 'ignore')
     else:
         return value
@@ -50,3 +54,19 @@ def get_key_description(key, key_class):
                                   where key = '%s'
                                     and %s""" % (key, null_condition('key_class', key_class)))
     return keys.fetchone()
+
+def get_table_columns(table):
+    cur = get_conn().execute('PRAGMA table_info("%s")' % table)
+    return [row[1] for row in cur.fetchall()]
+
+
+def get_brief_columns(table, masks, negate=True):
+    from fnmatch import filter
+    col = get_table_columns(table)
+    matched = []
+    for mask in masks:
+        matched.extend(filter(col, mask))
+    if negate:
+        return set(col) - set(matched)
+    else:
+        return set(matched)

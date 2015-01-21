@@ -17,30 +17,57 @@ def edit_table(table):
     cur = get_conn().cursor()
     row = cur.execute("""select rt.table_name,
                                 rt.uid_column,
-                                rt.description
+                                rt.description,
+                                rt.brief_columns
                            from reference_tables rt
                           where table_name = '%s'""" % table).fetchone()
     html_data = {'table': table,
                  'description': row[2],
-                 'uid_column': row[1]}
+                 'uid_column': row[1],
+                 'brief_columns': row[3]}
     t1 = from_db_cursor(get_conn().execute("""
              select k.key, k.key_class, k.description, k.data_format,
                     r.reference_column, r.error_column_low,
                     r.error_column_high, r.comment,
-                    '<a href="edit_key?table=%s&key='||k.key||'&key_class='||coalesce(k.key_class, 'none')||'">edit</a>' as link
+                    '<a href="edit_table_key?table=%s&key='||k.key||'&key_class='||coalesce(k.key_class, 'none')||'">edit</a>' as link
                from keys k
                join key_referencer r on r.key = k.key
                                     and ifnull(r.key_class, '') = ifnull(k.key_class, '')
               where r.reference_table = '%s'
               order by k.key, k.key_class""" % (table, table)))
-    t1.add_row(['']*8 + ['<a href="edit_key?table=%s&key=&key_class=&is_new=1">add new</a>' % table])
+    t1.add_row(['']*8 + ['<a href="edit_table_key?table=%s&key=&key_class=&is_new=1">add new</a>' % table])
     html_data['keys'] = t1.get_html_string(attributes={'border': 1},
                                            unescape=['link'])
     return t.render(html_data)
 
 
-def edit_key(table, key, key_class, is_new=0):
-    t = JINJA.get_template('edit_key.template')
+def edit_table_update(table, description, uid_column, brief_columns):
+    """
+    Committing changes done to the table.
+    """
+    conn = get_conn()
+    print """update reference_tables
+                      set description = '%s',
+                          uid_column = '%s',
+                          brief_columns = '%s'
+                    where table_name = '%s'""" % (description,
+                                                  uid_column,
+                                                  brief_columns,
+                                                  table)
+    conn.execute("""update reference_tables
+                      set description = '%s',
+                          uid_column = '%s',
+                          brief_columns = '%s'
+                    where table_name = '%s'""" % (description,
+                                                  uid_column,
+                                                  brief_columns,
+                                                  table)).fetchone()
+    conn.commit()
+    return open('static/table_edit_ok.html', 'r').readlines()
+
+
+def edit_table_key(table, key, key_class, is_new=0):
+    t = JINJA.get_template('edit_table_key.template')
     conn = get_conn()
     if key_class == 'none':
         key_class = None
@@ -71,7 +98,7 @@ def edit_key(table, key, key_class, is_new=0):
     return t.render(html_data)
 
 
-def edit_key_update(table, mode, key, key_class, description,
+def edit_table_key_update(table, mode, key, key_class,
                     reference_column, error_column_low, error_column_high,
                     comment):
     conn = get_conn()
@@ -111,20 +138,6 @@ def edit_key_update(table, mode, key, key_class, description,
                   nullify(error_column_high),
                   nullify(comment)))
             conn.commit()
-
-def edit_table_update(table, description, uid_column):
-    """
-    Committing changes done to the table.
-    """
-    conn = get_conn()
-    conn.execute("""update reference_tables
-                      set description = '%s',
-                          uid_column = '%s'
-                    where table_name = '%s'""" % (description,
-                                                  uid_column,
-                                                  table)).fetchone()
-    conn.commit()
-    return open('static/table_edit_ok.html', 'r').readlines()
 
 
 def list_table(table):

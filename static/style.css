@@ -1,3 +1,29 @@
+/*
+ * aipblue = rgb(0, 65, 122)
+ * aipgreen = rgb(216, 199, 0)
+ * aipyellow = rgb(216, 199, 0)
+ * aipgrey = rgb(82, 85, 90)
+ * aiplightblue = rgb(207,224,239)
+ * aipmenublue = rgb(0, 155, 219)
+*/
+ul.navigationbar {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: rgb(207,224,239);
+}
+
+ul.navigationbar li {
+    display: inline;
+}
+
+ul.navigationbar li a {
+    font-weight: bold;
+    color: rgb(0, 65, 122);
+    width: 180px;
+}
+
 table.hovertable {
     font-family: verdana,arial,sans-serif;
     font-size:14px;

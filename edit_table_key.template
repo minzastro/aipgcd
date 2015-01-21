@@ -8,8 +8,17 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
-    {% if mode != 'edit' %}
     <script language="javascript">
+    function setSelectByValue(id, value) {
+        var sel = document.getElementById(id);
+        for(var i = 0, j = sel.options.length; i < j; ++i) {
+            if(sel.options[i].innerHTML === value) {
+               sel.selectedIndex = i;
+               break;
+            }
+        }
+    }
+
     function modifyKeyClass(){
         //alert('Modify key class'+$('#key_class_list').val());
         $.post("get_key_description?key="+$("#key_selector").val()+"&key_class="+$('#key_class_list').val(),function(response){
@@ -19,6 +28,7 @@
         })
     }
     function refillSelect(id, values){
+        /*Refill selector #id with a list of values*/
         var select_class = $(id);
         select_class.empty();
         if (values.length > 0){
@@ -36,6 +46,22 @@
             select_class.append(opt);
         }
     }
+
+    function fillSelectWithColumns(id, addNone, setValue, value){
+        /*Fill selector #id with a list of current table columns*/
+        $.post("get_table_columns?table={{table}}", function(response){
+            var values = response.split(',');
+            if (addNone){
+                values.unshift('none');
+            }
+            select_class = document.getElementById(id);
+            select_class.onchange = null;
+            refillSelect('#'+id, values);
+            if (setValue){
+                setSelectByValue(id, value);
+            }
+        })
+    }
     function modifyKey(){
         //alert('Modify key');
         $.post("get_key_class_list?key="+$("#key_selector").val(),function(response){
@@ -49,13 +75,23 @@
             modifyKeyClass()
         })
     }
+
+    {% if mode != 'edit' %}
     function winOnLoad(){
         modifyKey();
-    //    modifyKeyClass();
+        fillSelectWithColumns('column_list', false, false, '');
+        fillSelectWithColumns('error_column_low', true, false, '');
+        fillSelectWithColumns('error_column_high', true, false, '');
     }
+    {% else %}
+    function winOnLoad(){
+        fillSelectWithColumns('column_list', false, true, '{{reference_column}}');
+        fillSelectWithColumns('error_column_low', true, true, '{{error_column_low}}');
+        fillSelectWithColumns('error_column_high', true, true, '{{error_column_high}}');
+    }
+    {% endif %}
     window.onload = winOnLoad;
     </script>
-    {% endif %}
 </head>
 
 <body>
@@ -63,7 +99,7 @@
     <a href='edit_tables'>Back to tables list</a>
     <a href='edit_table?table={{table}}'>Back to table {{table}}</a>
     <h1>Table {{table}}</h1>
-    <form method="post" action="edit_key_update">
+    <form method="post" action="edit_table_key_update">
           <input type="hidden" name="table" value="{{table}}" />
           <input type="hidden" name="mode" value="{{mode}}" />
           {% if mode == 'edit' %}
@@ -91,11 +127,11 @@
           {% endif %}
           <br>
           <label for="reference_column">reference_column: </label>
-          <input type="text" name="reference_column" value="{{reference_column}}" /><br>
+          <select name="reference_column" id="column_list"></select><br>
           <label for="error_column_low">error_column_low: </label>
-          <input type="text" name="error_column_low" value="{{error_column_low}}" /><br>
+          <select name="error_column_low" id="error_column_low"></select><br>
           <label for="error_column_high">error_column_high: </label>
-          <input type="text" name="error_column_high" value="{{error_column_high}}" /><br>
+          <select name="error_column_high" id="error_column_high"></select><br>
           <label for="comment">comment: </label>
           <input type="text" name="comment" value="{{comment}}" /><br>
           <button type="submit">Submit changes</button>
