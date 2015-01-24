@@ -14,7 +14,7 @@ JINJA = Environment(loader=PackageLoader('AIP_clusters', '.'))
 def get_conn():
     conn = sqlite3.connect('AIP_clusters.sqlite')
     conn.enable_load_extension(True)
-    conn.execute("select load_extension('/home/mints/prog/AIP_clusters/sqlite_extentions/libsqlitefunctions.so')")
+    conn.execute("select load_extension('/home/minz/prog/AIP_clusters/sqlite_extentions/libsqlitefunctions.so')")
     conn.enable_load_extension(False)
     return conn
 
@@ -70,3 +70,9 @@ def get_brief_columns(table, masks, negate=True):
         return set(col) - set(matched)
     else:
         return set(matched)
+
+def format_value(value, xformat):
+    if xformat is None:
+        return str(value)
+    else:
+        return xformat % value

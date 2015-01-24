@@ -12,12 +12,12 @@ def create_table(file_name, file_type, table_name, description,
                  uid_column, is_string_uid,
                  ra_column, dec_column, delimiter=','):
     table = atpy.Table()
-    if args.type is not None:
+    if file_type is not None:
         table.read(file_name, type=file_type, delimiter=delimiter)
     else:
         table.read(file_name)
 
-    if args.table is not None:
+    if table_name is not None:
         table.table_name = table_name
     colnames = []
     for t in table.columns:

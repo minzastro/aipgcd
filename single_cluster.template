@@ -2,34 +2,29 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
-<link rel=stylesheet href='html/style.css' type='text/css'>
+<link rel=stylesheet href='static/style.css' type='text/css'>
 <head>
     <title>{{source_id}} from {{source}} ({{uid}})</title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
-    <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.dataTables.min.js"></script>
-    <script language="javascript">
-        function show_hide_column(tableid, columnlist) {
-           //var tbl = $('table#'+tableid);
-           var values = columnlist.split(',');
-           var inp = document.querySelector('input#'+tableid);
-           for (var i = 0; i < values.length; i++){
-               var col = $('table#'+tableid+' > thead > tr > th#'+values[i]);
-               if (col) {
-                 col.css('display', inp.checked?"table-cell":"none");
-               }
-           }
-        }
-        function winOnLoad(){
-            $('table#threexmm_detections').DataTable({
-                ordering: true,
-                //"scrollY":        window.innerHeight - 200,
-                //"scrollCollapse": true,
-                paging: false
+    <script type="text/javascript" charset="utf8" language="javascript">
+        $(window).load(function(){
+        $(".header").click(function () {
+            $header = $(this);
+            //getting the next element
+            $content = $header.next();
+            //open up the content needed - toggle the slide- if visible, slide up, if not slidedown.
+            $content.slideToggle(200, function () {
+                //execute this after slideToggle is done
+                //change text of header based on visibility of content div
+                $header.text(function () {
+                    //change text based on condition
+                    return $content.is(":visible") ? "Collapse" : "Expand";
+                });
             });
-        };
-        window.onload = winOnLoad;
+        });
+        });
     </script>
 </head>
 
@@ -62,8 +57,11 @@
 {%for table in tables%}
 <hr>
 <h1>{{table.title}}</h1>
-<input type="checkbox" id="{{table.id}}" onchange="show_hide_column('{{table.id}}', '{{table.briefcols}}')">Show all<br>
 {{table.html}}
+<div class="container">
+<div class="header"><span>See all data</span></div>
+<div class="content">{{table.full_table}}</div>
+</div>
 {%endfor%}
 </div>
 </body>

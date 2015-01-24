@@ -27,5 +27,9 @@
     <hr>
     <h1>Key fields:</h1>
     {{keys}}
+
+    <hr>
+    <h1>Columns</h1>
+    {{columns}}
 </body>
 </html>

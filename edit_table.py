@@ -14,18 +14,20 @@ def edit_table(table):
     Editing single table.
     """
     t = JINJA.get_template('edit_table.template')
-    cur = get_conn().cursor()
+    conn = get_conn()
+    cur = conn.cursor()
     row = cur.execute("""select rt.table_name,
                                 rt.uid_column,
                                 rt.description,
                                 rt.brief_columns
                            from reference_tables rt
                           where table_name = '%s'""" % table).fetchone()
+    cur.close()
     html_data = {'table': table,
                  'description': row[2],
                  'uid_column': row[1],
                  'brief_columns': row[3]}
-    t1 = from_db_cursor(get_conn().execute("""
+    t1 = from_db_cursor(conn.execute("""
              select k.key, k.key_class, k.description, k.data_format,
                     r.reference_column, r.error_column_low,
                     r.error_column_high, r.comment,
@@ -38,6 +40,10 @@ def edit_table(table):
     t1.add_row(['']*8 + ['<a href="edit_table_key?table=%s&key=&key_class=&is_new=1">add new</a>' % table])
     html_data['keys'] = t1.get_html_string(attributes={'border': 1},
                                            unescape=['link'])
+    t2 = from_db_cursor(conn.execute("""
+      select * from reference_tables_columns
+       where reference_table = '%s'""" % table))
+    html_data['columns'] = t2.get_html_string(attributes={'border': 1})
     return t.render(html_data)
 
 
