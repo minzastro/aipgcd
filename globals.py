@@ -8,13 +8,14 @@ Created on Mon Dec 15 21:00:29 2014
 #import sqlite3
 from pysqlite2 import dbapi2 as sqlite3
 from jinja2 import Environment, PackageLoader
+import os
 
 JINJA = Environment(loader=PackageLoader('AIP_clusters', '.'))
 
 def get_conn():
     conn = sqlite3.connect('AIP_clusters.sqlite')
     conn.enable_load_extension(True)
-    conn.execute("select load_extension('/home/minz/prog/AIP_clusters/sqlite_extentions/libsqlitefunctions.so')")
+    conn.execute("select load_extension('%s/sqlite_extentions/libsqlitefunctions.so')" % os.path.dirname(__file__))
     conn.enable_load_extension(False)
     return conn
 
