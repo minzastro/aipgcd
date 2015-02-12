@@ -1,7 +1,8 @@
 This is AIP cluster database repo.
 
-Requirements for AIPCD to work:
-Python:
+## Requirements for AIPCD to work: ##
+
+### Python: ###
 
 * Astropy
 
@@ -16,7 +17,7 @@ Python:
 
 * PrettyTables with custom edits
 
-JS:
+### JS: ###
 
 * JQuery
 
