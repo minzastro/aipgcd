@@ -7,8 +7,10 @@ Created on Mon Dec 15 20:28:43 2014
 import sys
 from os import path
 NAME = '%s/..' % path.dirname(__file__)
-sys.path.insert(0, path.abspath(NAME))
-#print sys.path[0]
+#sys.path.insert(0, path.abspath(NAME))
+sys.path.insert(0, path.abspath(path.dirname(__file__)))
+print sys.path
+
 import cherrypy
 from single_cluster import single_cluster, \
                                         single_cluster_update_comment, \
@@ -21,7 +23,7 @@ from edit_table import edit_table, edit_table_update, \
 from key_list import key_list, key_list_update
 from vo_cone_search import vo_cone_search
 from search import search
-from samp import get_samp_table
+#from samp import get_samp_table
 from globals import get_key_class_list, get_key_description, \
                                  get_table_columns
 
@@ -36,9 +38,9 @@ class HelloWorld(object):
     def index(self):
         return search()
 
-    @cherrypy.expose
-    def get_samp_table(self, **params):
-        return get_samp_table(params)
+    #@cherrypy.expose
+    #def get_samp_table(self, **params):
+#        return get_samp_table(params)
 
     @cherrypy.expose
     def single(self, uid=60036):

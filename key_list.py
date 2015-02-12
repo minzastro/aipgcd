@@ -3,8 +3,8 @@
 Created on Wed Jan 14 18:21:14 2015
 @author: mints
 """
-from aipgcd.prettiesttable import from_db_cursor
-from aipgcd.globals import get_conn, JINJA
+from prettiesttable import from_db_cursor
+from globals import get_conn, JINJA
 
 def key_list():
     t = JINJA.get_template('key_list.template')

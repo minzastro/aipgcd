@@ -9,7 +9,7 @@ import argparse
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy.extern.configobj.configobj import ConfigObj
-from aipgcd.globals import get_conn
+from globals import get_conn
 from astropy import units as u
 
 

@@ -3,8 +3,8 @@
 Created on Mon Dec  8 15:51:22 2014
 @author: mints
 """
-from aipgcd.prettiesttable import from_db_cursor, PrettiestTable
-from aipgcd.globals import get_conn, JINJA, get_brief_columns, format_value
+from prettiesttable import from_db_cursor, PrettiestTable
+from globals import get_conn, JINJA, get_brief_columns, format_value
 
 def single_cluster_update_comment(uid, comment):
     CONN = get_conn()

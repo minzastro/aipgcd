@@ -4,7 +4,7 @@ Created on Thu Mar  5 17:06:56 2015
 @author: mints
 """
 
-from aipgcd.globals import JINJA, get_conn, get_key_list
+from globals import JINJA, get_conn, get_key_list
 
 def search():
     t = JINJA.get_template('search.template')
