@@ -6,6 +6,10 @@
  * aiplightblue = rgb(207,224,239)
  * aipmenublue = rgb(0, 155, 219)
 */
+table {
+    white-space: nowrap;
+}
+
 ul.navigationbar {
     list-style-type: none;
     margin: 0;

@@ -4,7 +4,7 @@ Created on Mon Dec 15 21:22:39 2014
 
 @author: minz
 """
-from prettytable import from_db_cursor
+from AIP_clusters.prettiesttable import from_db_cursor
 from AIP_clusters.globals import get_conn, JINJA
 from AIP_clusters.globals import null_condition, nullify, get_key_list
 
@@ -41,11 +41,30 @@ def edit_table(table):
     html_data['keys'] = t1.get_html_string(attributes={'border': 1},
                                            unescape=['link'])
     t2 = from_db_cursor(conn.execute("""
-      select * from reference_tables_columns
+      select column_name, data_type, data_unit,
+             output_format, description
+        from reference_tables_columns
        where reference_table = '%s'""" % table))
-    html_data['columns'] = t2.get_html_string(attributes={'border': 1})
+    html_data['columns'] = t2.get_html_string(attributes={'border': 1,
+                                                          'id': 'myTable'})
     return t.render(html_data)
 
+
+def edit_table_update_column(table, column_name, data_type, data_unit,
+                             output_format, description):
+    conn = get_conn()
+    conn.execute("""update reference_tables_columns
+                       set data_type = '%s',
+                           data_unit = '%s',
+                           output_format = '%s',
+                           description = '%s'
+                     where reference_table = '%s'
+                       and column_name = '%s'
+                    """ % (data_type, data_unit,
+                             output_format, description,
+                             table, column_name)).fetchone()
+    conn.commit()
+    return None
 
 def edit_table_update(table, description, uid_column, brief_columns):
     """
@@ -155,9 +174,11 @@ def list_table(table):
     row = conn.execute("""select uid_column, description
                             from reference_tables
                            where table_name = '%s'""" % table).fetchone()
-    t1 = from_db_cursor(conn.execute("""select * from %s""" % table))
+    sql = "select * from %s" % table
+    t1 = from_db_cursor(conn.execute(sql))
     html_data = {'name': table,
                  'table': t1.get_html_string(attributes={'border': 1}),
                  'uid': row[0],
-                 'desc': row[1]}
+                 'desc': row[1],
+                 'sql': sql}
     return t.render(html_data)

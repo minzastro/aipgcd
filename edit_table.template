@@ -2,16 +2,58 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
-<!--<link rel=stylesheet href='style.css' type='text/css'>-->
+<link rel=stylesheet href='static/style.css' type='text/css'>
+<link rel=stylesheet href='static/jquery-ui.theme.css' type='text/css'>
+<link rel=stylesheet href='static/navigation_bar.css' type='text/css'>
 <head>
     <title>AIP cluster database: Table editor</title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
+    <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/jquery-ui.js"></script>
+    <script type="text/javascript" charset="utf8" language="javascript">
+        $(document).ready(function(){
+            $("#dialog").dialog({
+                   autoOpen: false,
+                   resizable: false,
+                   minHeight: false
+               });
+            $("#myTable td").click(function() {
+
+                //var column_num = parseInt( $(this).index() ) + 1;
+                var row_num = parseInt( $(this).parent().index() )+1;
+                //alert('#myTable tr:nth-child('+row_num+') td:nth-child('+column_num+')');
+                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(1)');
+                $("#dialog input[name='column'").val(cell.html());
+                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(2)');
+                $("#dialog select[name='data_type'").val(cell.html().toLowerCase());
+                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(3)');
+                $("#dialog input[name='data_unit'").val(cell.html());
+                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(4)');
+                $("#dialog input[name='output_format'").val(cell.html());
+                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(5)');
+                $("#dialog input[name='description'").val(cell.html());
+                $('#dialog').dialog('option', 'title', $('#myTable tr:nth-child('+row_num+') td:nth-child(1)').html());
+                $('#dialog').dialog('open');
+            });
+            $('#save_changes').click(function(){
+                var frm = document.getElementById('dialog');
+                $.post('edit_table_update_column', {table: "{{table}}",
+                                                    column_name: frm.querySelector('[name=column').value,
+                                                    description: frm.querySelector('#description').value,
+                                                    data_type: frm.querySelector('[name=data_type]').value,
+                                                    data_unit: frm.querySelector('[name=data_unit').value,
+                                                    output_format: frm.querySelector('[name=output_format').value,
+                                                    });
+                $('#dialog').dialog('close');
+                window.location.reload();
+            });
+        });
+        </script>
 </head>
 
 <body>
-    <a href='index'>Main menu</a>
-    <a href='edit_tables'>Back to tables list</a>
+    {% include "./static/navigation_bar.html"  %}
     <h1>Table {{table}}</h1>
     <form method="post" action="edit_table_update">
           <input type="hidden" name="table" value="{{table}}" />
@@ -31,5 +73,25 @@
     <hr>
     <h1>Columns</h1>
     {{columns}}
+
+    <div id="dialog" title="Edit column" id="edit_column">
+        <input type="hidden" name="column" value="" />
+        <label for="data_unit">Data units: </label>
+        <input type='text' name="data_unit" value=''></input>
+        <label for="data_type">Data units: </label>
+        <select name="data_type">
+             <option value='text'>Text</option>
+             <option value='integer'>Integer</option>
+             <option value='real'>Floating point</option>
+             <option value='double'>Double precision</option>
+             <option value='boolean'>Boolean</option>
+             <option value='link'>Link</option>
+        </select>
+        <label for="description">Description: </label>
+        <input type='text' name="description" id="description" value=''></input>
+        <label for="output_format">Output format: </label>
+        <input type='text' name="output_format" value=''></input>
+        <input type="button" id="save_changes" value="Submit changes"></input>
+    </div>
 </body>
 </html>

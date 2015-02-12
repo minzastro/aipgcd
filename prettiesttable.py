@@ -3,7 +3,7 @@
 Created on Tue Jan 20 16:41:39 2015
 @author: mints
 """
-from prettytable import PrettyTable, ALL, DEFAULT, FRAME, HEADER
+from prettytable import PrettyTable, ALL, FRAME
 import sys
 py3k = sys.version_info[0] >= 3
 if py3k and sys.version_info[1] >= 2:
@@ -13,7 +13,6 @@ else:
 
 
 def from_db_cursor(cursor, **kwargs):
-
     if cursor.description:
         table = PrettiestTable(**kwargs)
         table.field_names = [col[0] for col in cursor.description]
@@ -23,6 +22,31 @@ def from_db_cursor(cursor, **kwargs):
 
 
 class PrettiestTable(PrettyTable):
+    """
+    Extend prettytable with Unescape.
+    """
+    def __init__(self, field_names=None, **kwargs):
+        PrettyTable.__init__(self, field_names, **kwargs)
+        self._options.append('unescape')
+        if 'unescape' in kwargs:
+            self.self._validate_all_field_names('unescape', kwargs['unescape'])
+        else:
+            kwargs['unescape'] = None
+        self._unescape = kwargs['unescape'] or []
+
+    def _validate_option(self, option, val):
+        if option == 'unescape':
+            self._validate_all_field_names('unescape', val)
+        else:
+            super(PrettiestTable, self)._validate_option(option, val)
+
+    def _get_unescape(self):
+        return self._unescape
+
+    def _set_unescape(self, val):
+        self._validate_option("unescape", val)
+        self._unescape = val
+    unescape = property(_get_unescape, _set_unescape)
 
     def _get_html_header(self, options, lpad=None, rpad=''):
         lines = []
@@ -46,13 +70,11 @@ class PrettiestTable(PrettyTable):
         return lines
 
     def _get_simple_html_string(self, options):
-
         lines = []
         if options["xhtml"]:
             linebreak = "<br/>"
         else:
             linebreak = "<br>"
-
         open_tag = []
         open_tag.append("<table")
         if options["attributes"]:
@@ -60,9 +82,7 @@ class PrettiestTable(PrettyTable):
                 open_tag.append(" %s=\"%s\"" % (attr_name, options["attributes"][attr_name]))
         open_tag.append(">")
         lines.append("".join(open_tag))
-
         lines.extend(self._get_html_header(options))
-
         # Data
         rows = self._get_rows(options)
         formatted_rows = self._format_rows(rows, options)
@@ -129,5 +149,4 @@ class PrettiestTable(PrettyTable):
                 lines.append("        <td style=\"padding-left: %dem; padding-right: %dem; text-align: %s; vertical-align: %s\">%s</td>" % (lpad, rpad, align, valign, escape(datum).replace("\n", linebreak)))
             lines.append("    </tr>")
         lines.append("</table>")
-
         return self._unicode("\n").join(lines)

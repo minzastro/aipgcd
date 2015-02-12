@@ -9,21 +9,30 @@
     <meta name="generator" content="Geany 1.22" />
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
     <script type="text/javascript" charset="utf8" language="javascript">
+
         $(window).load(function(){
-        $(".header").click(function () {
-            $header = $(this);
-            //getting the next element
-            $content = $header.next();
-            //open up the content needed - toggle the slide- if visible, slide up, if not slidedown.
-            $content.slideToggle(200, function () {
-                //execute this after slideToggle is done
-                //change text of header based on visibility of content div
-                $header.text(function () {
-                    //change text based on condition
-                    return $content.is(":visible") ? "Collapse" : "Expand";
+            $(".header").click(function () {
+                $header = $(this);
+                //getting the next element
+                $content = $header.next();
+                //open up the content needed - toggle the slide- if visible, slide up, if not slidedown.
+                $content.slideToggle(200, function () {
+                    //execute this after slideToggle is done
+                    //change text of header based on visibility of content div
+                    $header.text(function () {
+                        //change text based on condition
+                        return $content.is(":visible") ? "Collapse" : "Expand";
+                    });
                 });
             });
-        });
+            $('#change_comment').click(function(){
+
+                $.post('single_cluster_update_comment', {uid: {{uid}},
+                                                         comment: document.getElementById('comment').value});
+                var button = document.getElementById('change_comment');
+                button.value = 'Saved!';
+                setTimeout(function(){button.value = 'Submit changes'}, 1000);
+            });
         });
     </script>
 </head>
@@ -54,6 +63,12 @@
     {%endfor%}
 </table>
 
+<hr>
+<h1>Comment</h1>
+<div>
+<textarea id="comment" name="comment" cols="40" rows="5">{{comment}}</textarea>
+<input type="button" id="change_comment" value="Submit changes"></input>
+</div>
 {%for table in tables%}
 <hr>
 <h1>{{table.title}}</h1>
@@ -64,6 +79,7 @@
 </div>
 {%endfor%}
 </div>
+
 </body>
 
 </html>

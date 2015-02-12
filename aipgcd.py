@@ -6,11 +6,12 @@ Created on Mon Dec 15 20:28:43 2014
 """
 
 import cherrypy
-from AIP_clusters.single_cluster import single_cluster
+from AIP_clusters.single_cluster import single_cluster, single_cluster_update_comment
 from AIP_clusters.edit_tables import edit_tables
 from AIP_clusters.edit_table import edit_table, edit_table_update, \
                                     list_table, \
-                                    edit_table_key, edit_table_key_update
+                                    edit_table_key, edit_table_key_update, \
+                                    edit_table_update_column
 from AIP_clusters.key_list import key_list
 from AIP_clusters.vo_cone_search import vo_cone_search
 from AIP_clusters.globals import get_key_class_list, get_key_description, get_table_columns
@@ -29,12 +30,22 @@ class HelloWorld(object):
         return single_cluster(uid)
 
     @cherrypy.expose
+    def single_cluster_update_comment(self, uid, comment):
+        return single_cluster_update_comment(uid, comment)
+
+    @cherrypy.expose
     def edit_tables(self):
         return edit_tables()
 
     @cherrypy.expose
     def edit_table(self, table):
         return edit_table(table)
+
+    @cherrypy.expose
+    def edit_table_update_column(self, table, column_name, data_type,
+                                 data_unit, output_format, description):
+        return edit_table_update_column(table, column_name, data_type, data_unit,
+                             output_format, description)
 
     @cherrypy.expose
     def key_list(self):
@@ -78,4 +89,4 @@ class HelloWorld(object):
         return edit_table_update(table, description, uid_column, brief_columns)
 
 if __name__ == '__main__':
-   cherrypy.quickstart(HelloWorld(), config="aipccd.conf")
+   cherrypy.quickstart(HelloWorld(), config="aipgcd.conf")

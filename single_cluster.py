@@ -6,6 +6,13 @@ Created on Mon Dec  8 15:51:22 2014
 from AIP_clusters.prettiesttable import from_db_cursor, PrettiestTable
 from AIP_clusters.globals import get_conn, JINJA, get_brief_columns, format_value
 
+def single_cluster_update_comment(uid, comment):
+    CONN = get_conn()
+    xcomment = comment.replace("'", "''")
+    CONN.execute("update clusters set comment = '%s' where uid = %s" % (
+        xcomment, uid))
+    CONN.commit()
+    return None
 
 def single_cluster(uid):
     t = JINJA.get_template('single_cluster.template')
@@ -13,10 +20,11 @@ def single_cluster(uid):
     cur = CONN.cursor()
     html_data = {}
     html_data['uid'] = uid
-    result = CONN.execute("select source, source_id "
+    result = CONN.execute("select source, source_id, comment "
                           "from clusters where uid = %s" % uid).fetchone()
     html_data['source'] = result[0]
     html_data['source_id'] = result[1]
+    html_data['comment'] = result[2]
 
     html_data['params'] = []
     html_data['tables'] = []

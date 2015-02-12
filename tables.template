@@ -29,11 +29,11 @@
         <td>{{tab.uid}}</td>
         <td><form action="/edit_table">
               <input type="hidden" name="table" value="{{tab.name}}" />
-              <input type="submit" value="Edit">
+              <input type="submit" value="Settings">
             </form></td>
         <td><form action="/list_table">
               <input type="hidden" name="table" value="{{tab.name}}" />
-              <input type="submit" value="View">
+              <input type="submit" value="View data">
             </form></td>
     </tr>
     {%endfor%}
