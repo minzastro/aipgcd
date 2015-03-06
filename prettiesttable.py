@@ -48,6 +48,13 @@ class PrettiestTable(PrettyTable):
         self._unescape = val
     unescape = property(_get_unescape, _set_unescape)
 
+    def _format_value(self, field, value):
+        if isinstance(value, int) and field in self._int_format:
+            value = self._unicode(("%%%s" % self._int_format[field]) % value)
+        elif isinstance(value, float) and field in self._float_format:
+            value = self._unicode(("%%%s" % self._float_format[field]) % value)
+        return self._unicode(value)
+
     def _get_html_header(self, options, lpad=None, rpad=''):
         lines = []
         if options["xhtml"]:

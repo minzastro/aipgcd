@@ -2,18 +2,32 @@
 """
 Created on Mon Dec  8 14:49:34 2014
 @author: mints
+Universal tool to import data into AIP Galaxy clusters database.
 """
 
-import atpy
 import argparse
 from pysqlite2 import dbapi2 as sqlite3
+from astropy.table import Table
+
+
+def get_field_datatype(field):
+    typename = field.dtype.name
+    if typename.startswith('int'):
+        return 'integer'
+    elif typename.startswith('float'):
+        return 'float'
+    elif typename.startswith('string'):
+        return 'text'
+    else:
+        return typename
 
 def create_table(file_name, file_type, table_name, description,
                  uid_column, is_string_uid,
                  ra_column, dec_column, delimiter=','):
-    table = atpy.Table()
+    # Import data first:
+    table = Table()
     if file_type is not None:
-        table.read(file_name, type=file_type, delimiter=delimiter)
+        table.read(file_name, format=file_type, delimiter=delimiter)
     else:
         table.read(file_name)
 
@@ -26,8 +40,8 @@ def create_table(file_name, file_type, table_name, description,
         colnames.append(t.lower())
     table.write('sqlite', 'AIP_clusters.sqlite')
 
+    # Now proceeith metadata:
     conn = sqlite3.connect('AIP_clusters.sqlite')
-    #import ipdb; ipdb.set_trace()
     conn.enable_load_extension(True)
     conn.execute("select load_extension('/home/mints/prog/AIP_clusters/sqlite_extentions/libsqlitefunctions.so')")
     conn.enable_load_extension(False)
@@ -36,6 +50,19 @@ def create_table(file_name, file_type, table_name, description,
                  "values ('%s', '%s', %s, '%s', '%s', '%s')" % (
                  table_name, uid_column, int(is_string_uid),
                  description, ra_column, dec_column))
+    for column in table.columns:
+        form = column.format[1:] if column.format is not None else 's'
+        if 'ucd' in column.meta:
+            ucd = column.meta['ucd']
+        else:
+            ucd = ''
+        sql = """insert into reference_tables_columns
+                 (reference_table, column_name, data_type, data_unit, output_format, ucd)
+                 values ('%s', '%s', '%s', '%s', '%s')""" % (
+                 table, column.name, get_field_datatype(column), column.unit,
+                 form, ucd)
+        conn.execute(sql)
+
     conn.execute("""
 insert into data_references (cluster_uid, reference_table, reference_uid)
 select c.uid, '{0}', x.{1}

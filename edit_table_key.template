@@ -2,13 +2,27 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
-<!--<link rel=stylesheet href='style.css' type='text/css'>-->
+<link rel=stylesheet href='static/style.css' type='text/css'>
 <head>
     <title>AIP cluster database, table {{table}}. Key editor</title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
     <script language="javascript">
+    function onUpdate(){
+        //alert('Ha!');
+        $.post('edit_table_key_update',
+               {table: '{{table}}',
+                       mode: '{{mode}}',
+                       key: document.getElementById('key_selector').value,
+                       reference_column: document.getElementById('column_list').value,
+                       error_column_low: document.getElementById('error_column_low').value,
+                       error_column_high: document.getElementById('error_column_high').value,
+                       comment: document.getElementById('comment').value}
+               );
+        //alert('Ha!');
+        return false;
+    }
     function setSelectByValue(id, value) {
         var sel = document.getElementById(id);
         for(var i = 0, j = sel.options.length; i < j; ++i) {
@@ -19,9 +33,9 @@
         }
     }
 
-    function modifyKeyClass(){
+    function modifyKey(){
         //alert('Modify key class'+$('#key_class_list').val());
-        $.post("get_key_description?key="+$("#key_selector").val()+"&key_class="+$('#key_class_list').val(),function(response){
+        $.post("get_key_description?key="+$("#key_selector").val(),function(response){
              var values = response.split(',');
              $("#description").text(values[0]);
              $("#key_format").text(values[1]);
@@ -62,23 +76,9 @@
             }
         })
     }
-    function modifyKey(){
-        //alert('Modify key');
-        $.post("get_key_class_list?key="+$("#key_selector").val(),function(response){
-            var values = response.split(',');
-            select_class = document.getElementById('key_class_list');
-            select_class.onchange = null;
-            refillSelect('#key_class_list', values);
-            select_class = document.getElementById('key_class_list');
-            select_class.onchange = modifyKeyClass;
-            select_class.selectedIndex = 0;
-            modifyKeyClass()
-        })
-    }
 
     {% if mode != 'edit' %}
     function winOnLoad(){
-        modifyKey();
         fillSelectWithColumns('column_list', false, false, '');
         fillSelectWithColumns('error_column_low', true, false, '');
         fillSelectWithColumns('error_column_high', true, false, '');
@@ -99,18 +99,16 @@
     <a href='edit_tables'>Back to tables list</a>
     <a href='edit_table?table={{table}}'>Back to table {{table}}</a>
     <h1>Table {{table}}</h1>
-    <form method="post" action="edit_table_key_update">
+    <form> <!--</form> onsubmit="onUpdate('sss'); return false;"-->
           <input type="hidden" name="table" value="{{table}}" />
           <input type="hidden" name="mode" value="{{mode}}" />
           {% if mode == 'edit' %}
-              <label for="key">key: </label>
-              <input type="text" name="key" value="{{key}}" readonly/><br>
-              <label for="key_class">key_class: </label>
-              <input type="text" name="key_class" value="{{key_class}}" readonly/><br>
+              <label for="key">Key: </label>
+              <input type="text" name="key" id="key_selector" value="{{key}},{{key_class}}" readonly/><br>
             <div>Description: {{description}}</div>
             <div>Format: {{format}}</div>
           {% else %}
-              <label for="key">key: </label>
+              <label for="key">key and key subclass: </label>
               <select name="key" id="key_selector" onchange="modifyKey()">
                   {% for key_item in key_list %}
                     {% if key_item == key %}
@@ -120,10 +118,8 @@
                     {% endif %}
                   {% endfor %}
               </select>
-              <label for="key_class">key_class: </label>
-              <select name="key_class" id="key_class_list"></select>
-              <div>Description: </div><div id="description"></div>
-              <div>Format: </div><div id="key_format"></div>
+              <div><label>Description: </label><div id="description"></div></div>
+              <div><label>Format: </label><div id="key_format"></div></div>
           {% endif %}
           <br>
           <label for="reference_column">reference_column: </label>
@@ -133,8 +129,8 @@
           <label for="error_column_high">error_column_high: </label>
           <select name="error_column_high" id="error_column_high"></select><br>
           <label for="comment">comment: </label>
-          <input type="text" name="comment" value="{{comment}}" /><br>
-          <button type="submit">Submit changes</button>
+          <input type="text" name="comment" id="comment" value="{{comment}}" /><br>
+          <input type="button" onclick="onUpdate()">Submit changes</input>
     </form>
 
 </body>

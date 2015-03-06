@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>AIP galaxy cluster database</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <script type="text/javascript" charset="utf8" src="jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="jquery-ui.js"></script>
+    <script type="text/javascript" charset="utf8" language="javascript">
+        $(function () {
+            $('#btnAdd').click(function () {
+                var num     = $('.clonedInput').length, // Checks to see how many "duplicatable" input fields we currently have
+                    newNum  = new Number(num + 1),      // The numeric ID of the new input field being added, increasing by 1 each time
+                    newElem = $('#entry' + num).clone().attr('id', 'entry' + newNum).fadeIn('slow'); // create the new element via clone(), and manipulate it's ID using newNum value
+                $('#entry' + num).after(newElem);
+            });
+        });
+    </script>
+</head>
+
+<body>
+
+        <form method="get">
+            <fieldset>
+              <legend>VO cone search:</legend>
+              <label for="ra">RA (degrees): </label>
+              <input type="text" value="" name="ra" />
+              <label for="decl">DE (degrees): </label>
+              <input type="text" value="" name="decl" />
+              <label for="radius">Search radius (arcmin): </label>
+              <input type="text" value="" name="radius" />
+              <button type="submit">Search</button>
+            </fieldset>
+            <div id="entry1" class="clonedInput">
+            <fieldset>
+            <legend>Filters:</legend>
+              <label for="key">Key: </label>
+              <select name="key"></select>
+              <select name='key_condition'>
+                  <option value='exists'>exists</option>
+                  <option value='not exists'>not exists</option>
+              </select>
+
+              <button type="submit">Get data</button>
+              </fieldset>
+            </div
+            <div id="addDelButtons">
+                <input type="button" id="btnAdd" value="add section"> <input type="button" id="btnDel" value="remove section above">
+            </div>
+        </form>
+</body>

@@ -6,6 +6,12 @@
  * aiplightblue = rgb(207,224,239)
  * aipmenublue = rgb(0, 155, 219)
 */
+label {
+    clear: left;
+    float: left;
+}
+
+
 table {
     white-space: nowrap;
 }
