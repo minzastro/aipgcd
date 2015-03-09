@@ -12,38 +12,128 @@
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
     <script type="text/javascript" charset="utf8" src="/static/jquery-ui.js"></script>
     <script type="text/javascript" charset="utf8" language="javascript">
+        function setSelectByValue(id, value) {
+            var sel = document.getElementById(id);
+            for(var i = 0, j = sel.options.length; i < j; ++i) {
+                if(sel.options[i].innerHTML === value) {
+                   sel.selectedIndex = i;
+                   break;
+                }
+            }
+        }
+
+        function modifyKey(){
+            $.post("get_key_description?key="+$("#key_selector").val(),function(response){
+                 var values = response.split(',');
+                 $("#key_dialog #description").text(values[0]);
+                 $("#key_dialog #key_format").text(values[1]);
+            })
+        }
+
+        function ShowKeyEdit(row_num) {
+            var cell = $('#keys_table tr:nth-child('+row_num+') td:nth-child(1)').html();
+            $("#key_dialog input[name='key_uid'").val(cell);
+            $("#key_dialog input[name='key_mode'").val('edit');
+            var key = $('#keys_table tr:nth-child('+row_num+') td:nth-child(2)').html();
+            var keyclass = $('#keys_table tr:nth-child('+row_num+') td:nth-child(3)').html();
+            if (keyclass == 'None') {
+                keyclass = 'none';
+            }
+            key = key + ',' + keyclass;
+            setSelectByValue('key_selector', key);
+            modifyKey();
+            var cell = $('#keys_table tr:nth-child('+row_num+') td:nth-child(6)').html();
+            setSelectByValue('key_reference_column', cell);
+            var cell = $('#keys_table tr:nth-child('+row_num+') td:nth-child(7)').html();
+            setSelectByValue('key_error_column_low', cell);
+            var cell = $('#keys_table tr:nth-child('+row_num+') td:nth-child(8)').html();
+            setSelectByValue('key_error_column_high', cell);
+            $('#key_dialog').dialog('open');
+        }
+
         $(document).ready(function(){
+            $("#please_wait").dialog({
+                   autoOpen: false,
+                   resizable: false,
+                   minHeight: false
+               });
             $("#dialog").dialog({
                    autoOpen: false,
                    resizable: false,
                    minHeight: false
                });
-            $("#myTable td").click(function() {
+            $("#key_dialog").dialog({
+                   autoOpen: false,
+                   resizable: false,
+                   minHeight: false
+               });
+
+            $("#keys_table td").click(function(){
+                var row_num = parseInt( $(this).parent().index() )+1;
+                var col_num = parseInt( $(this).index() )+1;
+                if (col_num != 10){
+                    ShowKeyEdit(row_num);
+                }
+                else{
+                    var xuid = $('#keys_table tr:nth-child('+row_num+') td:nth-child(1)').html();
+                    $.post('edit_table_key_delete', {table: "{{table}}",
+                                                      uid: xuid});
+                    window.location.reload();
+                }
+            });
+
+            $('#key_save_changes').click(function(){
+                var frm = document.getElementById('key_dialog');
+                var reference_col = frm.querySelector('#key_reference_column').value;
+                if (reference_col != 'None'){
+                    $.post('edit_table_key_update', {table: "{{table}}",
+                                                     key: frm.querySelector('[name=key]').value,
+                                                     mode: frm.querySelector('[name=key_mode]').value,
+                                                     uid: frm.querySelector('[name=key_uid]').value,
+                                                     reference_column: reference_col,
+                                                     error_column_low: frm.querySelector('#key_error_column_low').value,
+                                                     error_column_high: frm.querySelector('#key_error_column_high').value,
+                                                     comment: frm.querySelector('#key_comment').value,
+                                                    });
+                    $('#key_dialog').dialog('close');
+                    window.location.reload();
+                } else {
+                    alert('Reference column is not selected!');
+                }
+            });
+
+            $('#new_key').click(function(){
+               $("#key_dialog input[name='key_mode'").val('new');
+               $('#key_dialog').dialog('open');
+            });
+
+            $("#columns_table td").click(function() {
 
                 //var column_num = parseInt( $(this).index() ) + 1;
                 var row_num = parseInt( $(this).parent().index() )+1;
-                //alert('#myTable tr:nth-child('+row_num+') td:nth-child('+column_num+')');
-                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(1)');
+                //alert('#columns_table tr:nth-child('+row_num+') td:nth-child('+column_num+')');
+                var cell = $('#columns_table tr:nth-child('+row_num+') td:nth-child(1)');
                 $("#dialog input[name='column'").val(cell.html());
-                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(2)');
+                var cell = $('#columns_table tr:nth-child('+row_num+') td:nth-child(2)');
                 $("#dialog select[name='data_type'").val(cell.html().toLowerCase());
-                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(3)');
+                var cell = $('#columns_table tr:nth-child('+row_num+') td:nth-child(3)');
                 $("#dialog input[name='data_unit'").val(cell.html());
-                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(4)');
+                var cell = $('#columns_table tr:nth-child('+row_num+') td:nth-child(4)');
                 $("#dialog input[name='output_format'").val(cell.html());
-                var cell = $('#myTable tr:nth-child('+row_num+') td:nth-child(5)');
+                var cell = $('#columns_table tr:nth-child('+row_num+') td:nth-child(5)');
                 $("#dialog input[name='description'").val(cell.html());
-                $('#dialog').dialog('option', 'title', $('#myTable tr:nth-child('+row_num+') td:nth-child(1)').html());
+                $('#dialog').dialog('option', 'title', $('#columns_table tr:nth-child('+row_num+') td:nth-child(1)').html());
                 $('#dialog').dialog('open');
             });
+
             $('#save_changes').click(function(){
                 var frm = document.getElementById('dialog');
                 $.post('edit_table_update_column', {table: "{{table}}",
-                                                    column_name: frm.querySelector('[name=column').value,
+                                                    column_name: frm.querySelector('[name=column]').value,
                                                     description: frm.querySelector('#description').value,
                                                     data_type: frm.querySelector('[name=data_type]').value,
-                                                    data_unit: frm.querySelector('[name=data_unit').value,
-                                                    output_format: frm.querySelector('[name=output_format').value,
+                                                    data_unit: frm.querySelector('[name=data_unit]').value,
+                                                    output_format: frm.querySelector('[name=output_format]').value,
                                                     });
                 $('#dialog').dialog('close');
                 window.location.reload();
@@ -69,6 +159,7 @@
     <hr>
     <h1>Key fields:</h1>
     {{keys}}
+    <input type="button" id="new_key" value="Add new key"/>
 
     <hr>
     <h1>Columns</h1>
@@ -92,6 +183,48 @@
         <label for="output_format">Output format: </label>
         <input type='text' name="output_format" value=''></input>
         <input type="button" id="save_changes" value="Submit changes"></input>
+    </div>
+
+    <div id="key_dialog" title="Edit key">
+        <input type="hidden" name="key_uid"/>
+        <input type="hidden" name="key_mode"/>
+        <label for="key">key and key subclass: </label>
+        <select name="key" id="key_selector" onchange="modifyKey()">
+          {% for key_item in key_list %}
+            {% if key_item == key %}
+                <option value={{key_item}} selected>{{key_item}}</option>
+            {% else %}
+                <option value={{key_item}}>{{key_item}}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+        <div>Description: </div><div id="description"></div>
+        <div>Format: </div><div id="key_format"></div>
+        <label for="reference_column">reference_column: </label>
+        <select name="reference_column" id="key_reference_column">
+            {% for column in column_names %}
+                <option value={{column}}>{{column}}</option>
+            {% endfor %}
+        </select><br>
+        <label for="error_column_low">error_column_low: </label>
+        <select name="error_column_low" id="key_error_column_low">
+            {% for column in column_names %}
+                <option value={{column}}>{{column}}</option>
+            {% endfor %}
+        </select><br>
+        <label for="error_column_high">error_column_high: </label>
+        <select name="error_column_high" id="key_error_column_high">
+            {% for column in column_names %}
+                <option value={{column}}>{{column}}</option>
+            {% endfor %}
+        </select><br>
+        <label for="comment">comment: </label>
+        <input type="text" name="comment" id="key_comment" value="{{comment}}" /><br>
+        <input type="button" id="key_save_changes" value="Submit changes"></input>
+    </div>
+
+    <div id="please_wait" title="Please wait">
+        <p>Saving changes, please wait...</p>
     </div>
 </body>
 </html>

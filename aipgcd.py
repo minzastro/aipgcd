@@ -6,14 +6,17 @@ Created on Mon Dec 15 20:28:43 2014
 """
 
 import cherrypy
-from AIP_clusters.single_cluster import single_cluster, single_cluster_update_comment
+from AIP_clusters.single_cluster import single_cluster, \
+                                        single_cluster_update_comment, \
+                                        single_cluster_update_xid
 from AIP_clusters.edit_tables import edit_tables
 from AIP_clusters.edit_table import edit_table, edit_table_update, \
                                     list_table, \
-                                    edit_table_key, edit_table_key_update, \
+                                    edit_table_key_delete, edit_table_key_update, \
                                     edit_table_update_column
-from AIP_clusters.key_list import key_list
+from AIP_clusters.key_list import key_list, key_list_update
 from AIP_clusters.vo_cone_search import vo_cone_search
+from AIP_clusters.search import search
 from AIP_clusters.globals import get_key_class_list, get_key_description, get_table_columns
 
 def error_page_404(status, message, traceback, version):
@@ -23,7 +26,8 @@ cherrypy.config.update({'error_page.404': error_page_404})
 class HelloWorld(object):
     @cherrypy.expose
     def index(self):
-        return open('static/main.html', 'r').readlines()
+        return search()
+        #return open('static/main.html', 'r').readlines()
 
     @cherrypy.expose
     def single(self, uid=60036):
@@ -32,6 +36,10 @@ class HelloWorld(object):
     @cherrypy.expose
     def single_cluster_update_comment(self, uid, comment):
         return single_cluster_update_comment(uid, comment)
+
+    @cherrypy.expose
+    def single_cluster_update_xid(self, uid, xid):
+        return single_cluster_update_xid(uid, xid)
 
     @cherrypy.expose
     def edit_tables(self):
@@ -52,16 +60,21 @@ class HelloWorld(object):
         return key_list()
 
     @cherrypy.expose
-    def edit_table_key(self, table, key, key_class, is_new=0):
-        return edit_table_key(table, key, key_class, is_new)
+    def key_list_update(self, key, key_class, description, format):
+        return key_list_update(key, key_class, description, format)
 
     @cherrypy.expose
-    def edit_table_key_update(self, table, mode, key, key_class,
+    def edit_table_key_delete(self, table, uid):
+        edit_table_key_delete(table, uid)
+        return key_list()
+
+    @cherrypy.expose
+    def edit_table_key_update(self, table, mode, uid, key,
                               reference_column, error_column_low,
                               error_column_high, comment):
-        edit_table_key_update(table, mode, key, key_class,
-                              reference_column, error_column_low,
-                              error_column_high, comment)
+        edit_table_key_update(table, mode, uid, key,
+                                     reference_column, error_column_low,
+                                     error_column_high, comment)
         raise cherrypy.InternalRedirect('edit_table?table=%s' % str(table))
 
     @cherrypy.expose
@@ -69,7 +82,8 @@ class HelloWorld(object):
         return ','.join(get_key_class_list(key))
 
     @cherrypy.expose
-    def get_key_description(self, key, key_class):
+    def get_key_description(self, key):
+        key, key_class = key.split(',')
         return ','.join(map(str, get_key_description(key, key_class)))
 
     @cherrypy.expose
@@ -81,8 +95,9 @@ class HelloWorld(object):
         return list_table(table)
 
     @cherrypy.expose
-    def vo_cone_search(self, ra, decl, radius):
-        return vo_cone_search(ra, decl, radius)
+    def vo_cone_search(self, **params):
+        print params
+        return vo_cone_search(params)
 
     @cherrypy.expose
     def edit_table_update(self, table, description, uid_column, brief_columns):

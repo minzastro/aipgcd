@@ -6,6 +6,7 @@ Created on Mon Dec 15 21:22:39 2014
 """
 from AIP_clusters.prettiesttable import from_db_cursor
 from AIP_clusters.globals import get_conn, JINJA
+from AIP_clusters.globals import get_table_columns
 from AIP_clusters.globals import null_condition, nullify, get_key_list
 
 
@@ -23,30 +24,35 @@ def edit_table(table):
                            from reference_tables rt
                           where table_name = '%s'""" % table).fetchone()
     cur.close()
+    columns = get_table_columns(table)
+    columns[0] = 'None'
     html_data = {'table': table,
                  'description': row[2],
                  'uid_column': row[1],
-                 'brief_columns': row[3]}
+                 'brief_columns': row[3],
+                 'key_list': get_key_list(conn),
+                 'column_names': columns
+                 }
     t1 = from_db_cursor(conn.execute("""
-             select k.key, k.key_class, k.description, k.data_format,
+             select r.uid, k.key, k.key_class, k.description, k.data_format,
                     r.reference_column, r.error_column_low,
                     r.error_column_high, r.comment,
-                    '<a href="edit_table_key?table=%s&key='||k.key||'&key_class='||coalesce(k.key_class, 'none')||'">edit</a>' as link
+                    "Delete"
                from keys k
-               join key_referencer r on r.key = k.key
+               join reference_tables_keys r on r.key = k.key
                                     and ifnull(r.key_class, '') = ifnull(k.key_class, '')
               where r.reference_table = '%s'
-              order by k.key, k.key_class""" % (table, table)))
-    t1.add_row(['']*8 + ['<a href="edit_table_key?table=%s&key=&key_class=&is_new=1">add new</a>' % table])
-    html_data['keys'] = t1.get_html_string(attributes={'border': 1},
-                                           unescape=['link'])
+                  order by k.key, k.key_class""" % (table)))
+    html_data['keys'] = t1.get_html_string(attributes={'border': 1,
+                                                       'id': 'keys_table'})
     t2 = from_db_cursor(conn.execute("""
       select column_name, data_type, data_unit,
              output_format, description
         from reference_tables_columns
        where reference_table = '%s'""" % table))
     html_data['columns'] = t2.get_html_string(attributes={'border': 1,
-                                                          'id': 'myTable'})
+                                                          'id': 'columns_table'})
+    conn.close()
     return t.render(html_data)
 
 
@@ -71,14 +77,6 @@ def edit_table_update(table, description, uid_column, brief_columns):
     Committing changes done to the table.
     """
     conn = get_conn()
-    print """update reference_tables
-                      set description = '%s',
-                          uid_column = '%s',
-                          brief_columns = '%s'
-                    where table_name = '%s'""" % (description,
-                                                  uid_column,
-                                                  brief_columns,
-                                                  table)
     conn.execute("""update reference_tables
                       set description = '%s',
                           uid_column = '%s',
@@ -91,62 +89,48 @@ def edit_table_update(table, description, uid_column, brief_columns):
     return open('static/table_edit_ok.html', 'r').readlines()
 
 
-def edit_table_key(table, key, key_class, is_new=0):
-    t = JINJA.get_template('edit_table_key.template')
+def edit_table_key_delete(table, uid):
     conn = get_conn()
-    if key_class == 'none':
-        key_class = None
-        condition = 'key_class is Null'
-    else:
-        condition = 'key_class = "%s"' % key_class
-    html_data = {'table': table,
-                 'key': key,
-                 'key_class': key_class,
-                 'description': '',
-                 'key_list': get_key_list(conn)}
-    if is_new == 0:
-        html_data['mode'] = 'edit'
-        t1 = conn.execute("""
-             select r.reference_column, r.error_column_low,
-                    r.error_column_high, r.comment
-               from key_referencer r
-              where r.reference_table = '%s'
-                and r.key = '%s'
-                and %s""" % (table, key, condition)).fetchone()
-        html_data.update({'reference_column': t1[0],
-                          'error_column_low': t1[1],
-                          'error_column_high': t1[2],
-                          'comment': t1[3]
-                          })
-    else:
-        html_data['mode'] = 'new'
-    return t.render(html_data)
+    conn.execute(u"""
+    delete from reference_tables_keys
+     where reference_table = '%s'
+       and uid = %s""" % (table, uid))
+    conn.commit()
+    return None
 
-
-def edit_table_key_update(table, mode, key, key_class,
+def edit_table_key_update(table, mode, uid, key,
                     reference_column, error_column_low, error_column_high,
                     comment):
     conn = get_conn()
-    if mode == 'edit':
+    key, key_class = key.split(',')
+    if uid != '':
+        check = conn.execute(u"""select key
+                                   from reference_tables_keys
+                                  where uid = %s""" % uid).rowcount
+    else:
+        check = 0
+    if mode == 'edit' or check <> 0:
         conn.execute(u"""
-            update key_referencer
+            update reference_tables_keys
                set reference_column = %s,
                    error_column_low = %s,
                    error_column_high = %s,
-                   comment = %s
-             where reference_table = '%s'
-               and key = '%s'
-               and %s
+                   comment = %s,
+                   key = %s,
+                   key_class = %s
+             where uid = %s
         """ % (nullify(reference_column),
                nullify(error_column_low),
                nullify(error_column_high),
                nullify(comment),
-               table, key, null_condition('key_class', key_class)))
+               nullify(key),
+               nullify(key_class),
+               uid))
         conn.commit()
     else:
         r1 = conn.execute("""
             select key
-              from key_referencer
+              from reference_tables_keys
              where reference_table = '%s'
                and key = '%s'
                and %s""" % (table, key, null_condition('key_class', key_class)))
@@ -154,7 +138,7 @@ def edit_table_key_update(table, mode, key, key_class,
             return "Already exists!"
         else:
             conn.execute(u"""
-            insert into key_referencer(reference_table, key, key_class,
+            insert into reference_tables_keys(reference_table, key, key_class,
                 reference_column, error_column_low, error_column_high, comment)
             values ("%s", "%s", %s, %s, %s, %s, %s)
             """ % (table, key, nullify(key_class),
@@ -163,7 +147,7 @@ def edit_table_key_update(table, mode, key, key_class,
                   nullify(error_column_high),
                   nullify(comment)))
             conn.commit()
-
+    return None
 
 def list_table(table):
     """

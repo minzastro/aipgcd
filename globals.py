@@ -42,7 +42,7 @@ def nullify(value):
         return value
 
 def get_key_list(conn):
-    keys = conn.execute("select distinct key from keys order by key")
+    keys = conn.execute("select distinct key || ',' || ifnull(key_class, 'none') from keys")
     return [item[0] for item in keys.fetchall()]
 
 def get_key_class_list(key):
@@ -76,4 +76,4 @@ def format_value(value, xformat):
     if xformat is None:
         return str(value)
     else:
-        return xformat % value
+        return ('%%%s' % xformat) % value

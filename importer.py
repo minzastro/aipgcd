@@ -2,18 +2,53 @@
 """
 Created on Mon Dec  8 14:49:34 2014
 @author: mints
+Universal tool to import data into AIP Galaxy clusters database.
 """
 
-import atpy
 import argparse
 from pysqlite2 import dbapi2 as sqlite3
+from astropy.table import Table
+from astropy.coordinates import SkyCoord
+from AIP_clusters.globals import get_conn
+
+def get_field_datatype(field):
+    typename = field.dtype.name
+    if typename.startswith('int'):
+        return 'integer'
+    elif typename.startswith('float'):
+        return 'float'
+    elif typename.startswith('string'):
+        return 'text'
+    else:
+        return typename
+
+def insert_cluster(conn, table_name, uid_column, ra_column, dec_column):
+    conn.execute("""
+insert into clusters(ra, dec, source, source_id, dec_int)
+select {2}, {3}, '{0}', {1}, cast({2} as int)
+  from {0} x
+ where not exists (select 1
+                     from data_references d
+                    where d.reference_table = '{0}'
+                      and d.reference_uid = x.{1})""".format(table_name,
+                                                             uid_column,
+                                                             ra_column,
+                                                             dec_column))
+    for row in conn.execute("""select uid, ra, dec from clusters
+                                where source = '%s'""" % table_name).fetchall():
+        sky = SkyCoord(row[1], row[2], frame='icrs', unit='deg')
+        gal = sky.galactic
+        conn.execute("""
+          update clusters
+             set gal_l = %s, gal_b = %s""" % (gal.ra, gal.dec))
 
 def create_table(file_name, file_type, table_name, description,
                  uid_column, is_string_uid,
                  ra_column, dec_column, delimiter=','):
-    table = atpy.Table()
+    # Import data first:
+    table = Table()
     if file_type is not None:
-        table.read(file_name, type=file_type, delimiter=delimiter)
+        table.read(file_name, format=file_type, delimiter=delimiter)
     else:
         table.read(file_name)
 
@@ -26,16 +61,26 @@ def create_table(file_name, file_type, table_name, description,
         colnames.append(t.lower())
     table.write('sqlite', 'AIP_clusters.sqlite')
 
-    conn = sqlite3.connect('AIP_clusters.sqlite')
-    #import ipdb; ipdb.set_trace()
-    conn.enable_load_extension(True)
-    conn.execute("select load_extension('/home/mints/prog/AIP_clusters/sqlite_extentions/libsqlitefunctions.so')")
-    conn.enable_load_extension(False)
+    # Now proceeith metadata:
+    conn = get_conn()
     conn.execute("insert into reference_tables(table_name, uid_column, "
                  "is_string_uid, description, ra_column, dec_column)"
                  "values ('%s', '%s', %s, '%s', '%s', '%s')" % (
                  table_name, uid_column, int(is_string_uid),
                  description, ra_column, dec_column))
+    for column in table.columns:
+        form = column.format[1:] if column.format is not None else 's'
+        if 'ucd' in column.meta:
+            ucd = column.meta['ucd']
+        else:
+            ucd = ''
+        sql = """insert into reference_tables_columns
+                 (reference_table, column_name, data_type, data_unit, output_format, ucd)
+                 values ('%s', '%s', '%s', '%s', '%s')""" % (
+                 table, column.name, get_field_datatype(column), column.unit,
+                 form, ucd)
+        conn.execute(sql)
+
     conn.execute("""
 insert into data_references (cluster_uid, reference_table, reference_uid)
 select c.uid, '{0}', x.{1}
@@ -46,17 +91,6 @@ select c.uid, '{0}', x.{1}
                                                            uid_column,
                                                            ra_column,
                                                            dec_column))
-    conn.execute("""
-insert into clusters(ra, dec, source, source_id, dec_int)
-select {2}, {3}, '{0}', {1}, cast({2} as int)
-  from {0} x
- where not exists (select 1
-                     from data_references d
-                    where d.reference_table = '{0}'
-                      and d.reference_uid = x.{1})""".format(table_name,
-                                                             uid_column,
-                                                             ra_column,
-                                                             dec_column))
     conn.commit()
 
 if __name__ == '__main__':
