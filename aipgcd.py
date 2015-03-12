@@ -14,7 +14,7 @@ from AIP_clusters.edit_table import edit_table, edit_table_update, \
                                     list_table, \
                                     edit_table_key_delete, edit_table_key_update, \
                                     edit_table_update_column
-from AIP_clusters.key_list import key_list
+from AIP_clusters.key_list import key_list, key_list_update
 from AIP_clusters.vo_cone_search import vo_cone_search
 from AIP_clusters.search import search
 from AIP_clusters.globals import get_key_class_list, get_key_description, get_table_columns
@@ -58,6 +58,10 @@ class HelloWorld(object):
     @cherrypy.expose
     def key_list(self):
         return key_list()
+
+    @cherrypy.expose
+    def key_list_update(self, key, key_class, description, format):
+        return key_list_update(key, key_class, description, format)
 
     @cherrypy.expose
     def edit_table_key_delete(self, table, uid):

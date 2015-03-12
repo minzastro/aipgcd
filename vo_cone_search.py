@@ -4,7 +4,7 @@ Created on Mon Dec 15 21:22:39 2014
 
 @author: minz
 """
-from prettytable import from_db_cursor
+from AIP_clusters.prettiesttable import from_db_cursor
 from AIP_clusters.globals import get_conn, JINJA
 
 def vo_cone_search(args):
@@ -30,9 +30,9 @@ select c.uid, ra, dec, c.source, source_id, group_concat(distinct r.reference_ta
   from clusters c
   join data_references r on r.cluster_uid = c.uid
  where haversine(c.ra, c.dec, {0}, {1}) < {2}./60.
-   %s
+   {3}
  group by c.uid, ra, dec, c.source, source_id
- order by c.ra""".format(ra, decl, radius, ' and '.join(conditions))
+ order by c.ra""".format(ra, decl, radius, ' '.join(conditions))
     t1 = from_db_cursor(conn.execute("""
 select c.uid, ra, dec, c.source, source_id, group_concat(distinct r.reference_table) as Tables
   from clusters c
@@ -42,5 +42,5 @@ select c.uid, ra, dec, c.source, source_id, group_concat(distinct r.reference_ta
  group by c.uid, ra, dec, c.source, source_id
  order by c.ra""".format(ra, decl, radius, ' '.join(conditions))))
     html_data = {'table': t1.get_html_string(attributes={'border': 1, 'id': 'search'},
-                                             unescape=('Tables'))}
+                                             unescape=[('Tables')])}
     return t.render(html_data)

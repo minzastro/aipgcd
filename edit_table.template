@@ -11,16 +11,8 @@
     <meta name="generator" content="Geany 1.22" />
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
     <script type="text/javascript" charset="utf8" src="/static/jquery-ui.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/aipgcd.js"></script>
     <script type="text/javascript" charset="utf8" language="javascript">
-        function setSelectByValue(id, value) {
-            var sel = document.getElementById(id);
-            for(var i = 0, j = sel.options.length; i < j; ++i) {
-                if(sel.options[i].innerHTML === value) {
-                   sel.selectedIndex = i;
-                   break;
-                }
-            }
-        }
 
         function modifyKey(){
             $.post("get_key_description?key="+$("#key_selector").val(),function(response){

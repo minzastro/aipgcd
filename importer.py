@@ -8,7 +8,10 @@ Universal tool to import data into AIP Galaxy clusters database.
 import argparse
 from pysqlite2 import dbapi2 as sqlite3
 from astropy.table import Table
-
+import numpy as np
+#from atpy import Table
+from astropy.coordinates import SkyCoord
+from AIP_clusters.globals import get_conn
 
 def get_field_datatype(field):
     typename = field.dtype.name
@@ -21,61 +24,10 @@ def get_field_datatype(field):
     else:
         return typename
 
-def create_table(file_name, file_type, table_name, description,
-                 uid_column, is_string_uid,
-                 ra_column, dec_column, delimiter=','):
-    # Import data first:
-    table = Table()
-    if file_type is not None:
-        table.read(file_name, format=file_type, delimiter=delimiter)
-    else:
-        table.read(file_name)
-
-    if table_name is not None:
-        table.table_name = table_name
-    colnames = []
-    for t in table.columns:
-        if t.lower() in colnames:
-            table.rename_column(t, '%s_' % t)
-        colnames.append(t.lower())
-    table.write('sqlite', 'AIP_clusters.sqlite')
-
-    # Now proceeith metadata:
-    conn = sqlite3.connect('AIP_clusters.sqlite')
-    conn.enable_load_extension(True)
-    conn.execute("select load_extension('/home/mints/prog/AIP_clusters/sqlite_extentions/libsqlitefunctions.so')")
-    conn.enable_load_extension(False)
-    conn.execute("insert into reference_tables(table_name, uid_column, "
-                 "is_string_uid, description, ra_column, dec_column)"
-                 "values ('%s', '%s', %s, '%s', '%s', '%s')" % (
-                 table_name, uid_column, int(is_string_uid),
-                 description, ra_column, dec_column))
-    for column in table.columns:
-        form = column.format[1:] if column.format is not None else 's'
-        if 'ucd' in column.meta:
-            ucd = column.meta['ucd']
-        else:
-            ucd = ''
-        sql = """insert into reference_tables_columns
-                 (reference_table, column_name, data_type, data_unit, output_format, ucd)
-                 values ('%s', '%s', '%s', '%s', '%s')""" % (
-                 table, column.name, get_field_datatype(column), column.unit,
-                 form, ucd)
-        conn.execute(sql)
-
-    conn.execute("""
-insert into data_references (cluster_uid, reference_table, reference_uid)
-select c.uid, '{0}', x.{1}
-  from clusters c, {0} x
- where c.dec_int >= cast(x.{3} as int) - 1
-   and c.dec_int <= cast(x.{3} as int) + 1
-   and haversine(c.ra, c.dec, x.{2}, x.{3}) < 1./60.""".format(table_name,
-                                                           uid_column,
-                                                           ra_column,
-                                                           dec_column))
+def insert_clusters(conn, table_name, uid_column, ra_column, dec_column):
     conn.execute("""
 insert into clusters(ra, dec, source, source_id, dec_int)
-select {2}, {3}, '{0}', {1}, cast({2} as int)
+select {2}, {3}, '{0}', {1}, cast({3} as int)
   from {0} x
  where not exists (select 1
                      from data_references d
@@ -84,6 +36,63 @@ select {2}, {3}, '{0}', {1}, cast({2} as int)
                                                              uid_column,
                                                              ra_column,
                                                              dec_column))
+    data = conn.execute("""select uid, ra, dec from clusters
+                            where source = '%s'""" % table_name).fetchall()
+    data = np.array(data)                            
+    sky = SkyCoord(data[:, 1], data[:, 2], frame='icrs', unit='deg')
+    gal = sky.galactic        
+    for irow, uid in enumerate(data[:, 0]):
+        conn.execute("""
+          update clusters
+             set gal_l = %s, gal_b = %s
+           where uid = %s""" % (gal[irow].l.deg, gal[irow].b.deg, uid))
+
+def create_table(file_name, file_type, table_name, description,
+                 uid_column, is_string_uid,
+                 ra_column, dec_column, delimiter=','):
+    # Import data first:
+    if file_type is not None and file_type in ['ascii', 'ascii.csv']:
+        table = Table.read(file_name, format=file_type, delimiter=delimiter)
+    elif file_type is not None:
+        table = Table.read(file_name, format=file_type)
+    else:
+        table = Table.read(file_name)
+
+    if table_name is not None:
+        table.meta['table_name'] = table_name
+    colnames = []
+    #import ipdb; ipdb.set_trace()
+    tnames = table.colnames
+    for t in tnames:
+        if t.lower() in colnames:
+            table.rename_column(t, '%s_' % t)
+        colnames.append(t.lower())
+    table.write('AIP_clusters.sqlite', format='sql', dbtype='sqlite')
+
+    # Now proceed metadata:
+    conn = get_conn()
+    conn.execute("insert into reference_tables(table_name, uid_column, "
+                 "is_string_uid, description, ra_column, dec_column, "
+                 "brief_columns, obs_class_global, obs_class_value)"
+                 "values ('%s', '%s', %s, '%s', '%s', '%s', "
+                 "'*', 'true', 0)" % (
+                 table_name, uid_column, int(is_string_uid),
+                 description, ra_column, dec_column))
+    for colname in table.columns.keys():
+        column = table.columns[colname]
+        form = column.format[1:] if column.format is not None else 's'
+        if 'ucd' in column.meta:
+            ucd = column.meta['ucd']
+        else:
+            ucd = ''
+        sql = """insert into reference_tables_columns
+                 (reference_table, column_name, data_type, data_unit, output_format, ucd)
+                 values ('%s', '%s', '%s', '%s', '%s', '%s')""" % (
+                 table_name, column.name, get_field_datatype(column), column.unit,
+                 form, ucd)
+        conn.execute(sql)
+
+    insert_clusters(conn, table_name, uid_column, ra_column, dec_column)
     conn.commit()
 
 if __name__ == '__main__':

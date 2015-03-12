@@ -8,6 +8,7 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/aipgcd.js"></script>
     {% if mode != 'edit' %}
     <script language="javascript">
     function modifyKeyClass(){
@@ -18,24 +19,7 @@
              $("#key_format").text(values[1]);
         })
     }
-    function refillSelect(id, values){
-        var select_class = $(id);
-        select_class.empty();
-        if (values.length > 0){
-            for (var i = 0; i < values.length; i++){
-                var opt = document.createElement('option');
-                opt.value = values[i];
-                opt.textContent = values[i];
-                select_class.append(opt);
-            }
-        }
-        else{
-            var opt = document.createElement('option');
-            opt.value = 'none';
-            opt.textContent = '-';
-            select_class.append(opt);
-        }
-    }
+
     function modifyKey(){
         //alert('Modify key');
         $.post("get_key_class_list?key="+$("#key_selector").val(),function(response){
@@ -51,7 +35,6 @@
     }
     function winOnLoad(){
         modifyKey();
-    //    modifyKeyClass();
     }
     window.onload = winOnLoad;
     </script>

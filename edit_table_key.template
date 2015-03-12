@@ -8,9 +8,9 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/aipgcd.js"></script>
     <script language="javascript">
     function onUpdate(){
-        //alert('Ha!');
         $.post('edit_table_key_update',
                {table: '{{table}}',
                        mode: '{{mode}}',
@@ -20,60 +20,14 @@
                        error_column_high: document.getElementById('error_column_high').value,
                        comment: document.getElementById('comment').value}
                );
-        //alert('Ha!');
         return false;
-    }
-    function setSelectByValue(id, value) {
-        var sel = document.getElementById(id);
-        for(var i = 0, j = sel.options.length; i < j; ++i) {
-            if(sel.options[i].innerHTML === value) {
-               sel.selectedIndex = i;
-               break;
-            }
-        }
     }
 
     function modifyKey(){
-        //alert('Modify key class'+$('#key_class_list').val());
         $.post("get_key_description?key="+$("#key_selector").val(),function(response){
              var values = response.split(',');
              $("#description").text(values[0]);
              $("#key_format").text(values[1]);
-        })
-    }
-    function refillSelect(id, values){
-        /*Refill selector #id with a list of values*/
-        var select_class = $(id);
-        select_class.empty();
-        if (values.length > 0){
-            for (var i = 0; i < values.length; i++){
-                var opt = document.createElement('option');
-                opt.value = values[i];
-                opt.textContent = values[i];
-                select_class.append(opt);
-            }
-        }
-        else{
-            var opt = document.createElement('option');
-            opt.value = 'none';
-            opt.textContent = '-';
-            select_class.append(opt);
-        }
-    }
-
-    function fillSelectWithColumns(id, addNone, setValue, value){
-        /*Fill selector #id with a list of current table columns*/
-        $.post("get_table_columns?table={{table}}", function(response){
-            var values = response.split(',');
-            if (addNone){
-                values.unshift('none');
-            }
-            select_class = document.getElementById(id);
-            select_class.onchange = null;
-            refillSelect('#'+id, values);
-            if (setValue){
-                setSelectByValue(id, value);
-            }
         })
     }
 

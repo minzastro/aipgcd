@@ -12,11 +12,13 @@ import os
 
 JINJA = Environment(loader=PackageLoader('AIP_clusters', '.'))
 
-def get_conn():
+def get_conn(dict_row=False):
     conn = sqlite3.connect('AIP_clusters.sqlite')
     conn.enable_load_extension(True)
     conn.execute("select load_extension('%s/sqlite_extentions/libsqlitefunctions.so')" % os.path.dirname(__file__))
     conn.enable_load_extension(False)
+    if dict_row:
+        conn.row_factory = sqlite3.Row
     return conn
 
 def null_condition(column, value):
@@ -76,4 +78,9 @@ def format_value(value, xformat):
     if xformat is None:
         return str(value)
     else:
-        return ('%%%s' % xformat) % value
+        if xformat[-1] in 'gef':
+            return ('%%%s' % xformat) % float(value)
+        elif xformat[-1] in 'd':
+            return ('%%%s' % xformat) % int(value)
+        else:
+            return ('%%%s' % xformat) % value
