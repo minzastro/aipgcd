@@ -12,6 +12,7 @@ import numpy as np
 #from atpy import Table
 from astropy.coordinates import SkyCoord
 from AIP_clusters.globals import get_conn
+from astropy import units as u
 
 def get_field_datatype(field):
     typename = field.dtype.name
@@ -38,9 +39,11 @@ select {2}, {3}, '{0}', {1}, cast({3} as int)
                                                              dec_column))
     data = conn.execute("""select uid, ra, dec from clusters
                             where source = '%s'""" % table_name).fetchall()
-    data = np.array(data)                            
+    data = np.array(data)
+    print 'Inserted %s new clusters, updating galactic coordinates' % len(data)
     sky = SkyCoord(data[:, 1], data[:, 2], frame='icrs', unit='deg')
-    gal = sky.galactic        
+    gal = sky.galactic
+    conn.commit() # Trying to speed things up
     for irow, uid in enumerate(data[:, 0]):
         conn.execute("""
           update clusters
@@ -68,9 +71,22 @@ def create_table(file_name, file_type, table_name, description,
             table.rename_column(t, '%s_' % t)
         colnames.append(t.lower())
     table.write('AIP_clusters.sqlite', format='sql', dbtype='sqlite')
-
+    print 'Table %s created' % table_name
     # Now proceed metadata:
     conn = get_conn()
+    data = conn.execute("select ra, dec, uid from clusters").fetchall()
+    data = np.array(data)
+    if len(data) > 0:
+        smatch = SkyCoord(data[:, 0], data[:, 1], unit='deg')
+        starget = SkyCoord(table[ra_column].data, table[dec_column].data, unit='deg')
+        matches = smatch.search_around_sky(starget, (1./60.)*u.deg)
+        for match in xrange(len(matches[0])):
+            conn.execute("""
+            insert into data_references
+            (cluster_uid, reference_table, reference_uid)
+            values (%s, '%s', %s)""" % (int(data[matches[1][match], 2]),
+            table_name, table[uid_column].data[matches[0][match]]))
+        print "Inserted %s references" % len(matches[0])
     conn.execute("insert into reference_tables(table_name, uid_column, "
                  "is_string_uid, description, ra_column, dec_column, "
                  "brief_columns, obs_class_global, obs_class_value)"
@@ -94,6 +110,7 @@ def create_table(file_name, file_type, table_name, description,
 
     insert_clusters(conn, table_name, uid_column, ra_column, dec_column)
     conn.commit()
+    print 'Done'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

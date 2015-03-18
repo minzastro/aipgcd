@@ -79,12 +79,18 @@ def single_cluster(uid):
                                      rt.uid_column, rt.is_string_uid,
                                      rt.extra_column, rt.description,
                                      rt.brief_columns
-                                from reference_tables rt"""):
+                                from reference_tables rt
+                               where exists (select 1
+                                               from data_references d
+                                              where d.reference_table = rt.table_name
+                                                and d.cluster_uid = %s)
+                                  """ % uid):
         row = dict(row)
         column_list = get_brief_columns(row['table_name'],
                                         row['brief_columns'].split(','),
                                         negate=False)
         column_list = ','.join(['x.[%s]' % x for x in column_list])
+
         t1 = from_db_cursor(CONN.execute("""
             select {column_list}
               from {table_name} x
@@ -117,7 +123,6 @@ def single_cluster(uid):
                               [item[0] for item in cursor.description])
         for irow, arow in enumerate(cursor.fetchall()):
             full_table.add_column(str(irow), dict(arow).values())
-
         if len(t1._rows) > 0:
             html_data['tables'].append({
                 'title': row['description'],

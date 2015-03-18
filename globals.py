@@ -70,9 +70,16 @@ def get_brief_columns(table, masks, negate=True):
     for mask in masks:
         matched.extend(filter(col, mask))
     if negate:
-        return set(col) - set(matched)
+        result_set = set(col) - set(matched)
     else:
-        return set(matched)
+        result_set = set(matched)
+    columns = get_conn().execute("""select column_name
+      from reference_tables_columns
+     where reference_table = '%s'
+       and column_name in (%s)
+       order by uid""" % (table, ','.join("'%s'" % c for c in result_set)))
+    result = [row[0] for row in columns.fetchall()]
+    return result
 
 def format_value(value, xformat):
     if xformat is None:
