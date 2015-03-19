@@ -4,10 +4,7 @@ This is AIP cluster database repo.
 
 ### Python: ###
 
-* Astropy
-
-* AtPy
-
+* Astropy with custom edits
 
 * Jinja
 

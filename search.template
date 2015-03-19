@@ -9,17 +9,20 @@
     <link rel=stylesheet href='/static/navigation_bar.css' type='text/css'>
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
     <script type="text/javascript" charset="utf8" language="javascript">
-        function onTableFilter(){
-                if ($("#table_filter_cb").is(':checked')){
-                    $('#table_filter').show();
+        function onFilter(filter){
+                if ($("#"+filter+"_filter_cb").is(':checked')){
+                    $("#"+filter+"_filter").show();
                 }
                 else{
-                    $('#table_filter').hide();
+                    $("#"+filter+"_filter").hide();
                 }
             }
+
         $(document).ready(function(){
-            onTableFilter();
-            $("#table_filter_cb").click(onTableFilter);
+            onFilter('key');
+            onFilter('table');
+            $("#table_filter_cb").click(function(){ onFilter('table') });
+            $("#key_filter_cb").click(function(){ onFilter('key') });
         });
 
     </script>
@@ -33,6 +36,7 @@
    </ul>
 
     <div>
+        <h2>This is a temporary search</h2>
         <form method="get" action="../single"><fieldset>
             <legend>Single cluster selection:</legend>
               <label for="uid">Cluster UID: </label>
@@ -40,6 +44,8 @@
               <button type="submit">Get data</button>
               </fieldset>
         </form>
+
+        <h2>This is a full-power search</h2>
         <form method="post" action="../vo_cone_search">
             <fieldset>
               <legend>VO cone search:</legend>
@@ -49,7 +55,9 @@
               <input type="text" value="" name="decl" />
               <label for="radius">Search radius (arcmin): </label>
               <input type="text" value="" name="radius" />
-              <br>
+            </fieldset>
+            <fieldset>
+              <legend>Table selection</legend>
               <label for="table">Filter by table: </label>
               <input id="table_filter_cb" type="checkbox" name="table">
               <div id="table_filter">
@@ -63,8 +71,24 @@
                   {% endfor %}
                 </select>
               </div>
-              <div><button type="submit">Search</button></div>
             </fieldset>
+            <fieldset>
+                <legend>Key selection</legend>
+                <label for="key">Filter by key: </label>
+                <input id="key_filter_cb" type="checkbox" name="key">
+                <div id="key_filter">
+                  <select name="has_key">
+                    <option value="exists">has</option>
+                    <option value="not exists">has not</option>
+                  </select> in
+                  <select name="key_list">
+                    {% for key in key_list %}
+                       <option value={{key}} selected>{{key}}</option>
+                    {% endfor %}
+                  </select>
+              </div>
+            </fieldset>
+            <div><button type="submit">Search</button></div>
         </form>
     </div>
 </body>

@@ -93,7 +93,7 @@ def single_cluster(uid):
 
         t1 = from_db_cursor(CONN.execute("""
             select {column_list}
-              from {table_name} x
+              from [{table_name}] x
               join data_references r on r.reference_uid = [{uid_column}]
                                     and r.reference_table = '{table_name}'
              where r.cluster_uid = {uid}""".format(column_list=column_list,
@@ -114,7 +114,7 @@ def single_cluster(uid):
         # Full table record (initially hidden)
         cursor = CONN.execute("""
             select x.*
-              from {table_name} x
+              from [{table_name}] x
               join data_references r on r.reference_uid = [{uid_column}]
                                     and r.reference_table = '{table_name}'
              where r.cluster_uid = {uid}""".format(uid=uid, **row))

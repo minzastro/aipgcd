@@ -158,7 +158,7 @@ def list_table(table):
     row = conn.execute("""select uid_column, description
                             from reference_tables
                            where table_name = '%s'""" % table).fetchone()
-    sql = "select * from %s" % table
+    sql = "select * from [%s]" % table
     t1 = from_db_cursor(conn.execute(sql))
     columns = conn.execute("""select column_name, data_type, output_format
       from reference_tables_columns
@@ -167,7 +167,7 @@ def list_table(table):
         if data_type.lower() in ('int', 'integer'):
             t1._int_format[column_name] = output_format
         elif data_type.lower() in ('float', 'double', 'real'):
-            t1._float_format[column_name] = output_format    
+            t1._float_format[column_name] = output_format
     html_data = {'name': table,
                  'table': t1.get_html_string(attributes={'border': 1}),
                  'uid': row[0],
