@@ -44,7 +44,7 @@ def select_cluster_key(uid, table_data, conn):
         ext_row['uid'] = uid
         ext_row['select'] = select
         values = conn.execute("""select {select}, r.reference_uid
-                   from {table_name} x
+                   from [{table_name}] x
                    join data_references r on r.reference_uid = [{uid_column}]
                   where r.cluster_uid = {uid}
                     and r.reference_table = '{table_name}'""".format(**ext_row)).fetchall()
@@ -146,4 +146,5 @@ def single_cluster(uid):
                 'value': format_value(key['value'], key['output_format']),
                 'source': 'User defined'}
          html_data['params'].append(par)
+    html_data['params'].sort(key=lambda x: x['name'])
     return t.render(html_data)

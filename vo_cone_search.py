@@ -46,6 +46,7 @@ def vo_cone_search(args):
                 {3}
               group by c.uid, ra, dec, c.source, source_id
               order by c.ra""".format(ra, decl, radius, ' '.join(conditions))
+    print sql
     t1 = from_db_cursor(conn.execute(sql))
     html_data = {'table': t1.get_html_string(attributes={'border': 1, 'id': 'search'},
                                              unescape=[('Tables')])}

@@ -42,14 +42,18 @@ def insert_clusters(conn, table_name, uid_column,
         gagal_ls = ''
         gal_select = ''
         update_gal = True
-    conn.execute("""
+    conn.executescript("""
 insert into clusters(ra, dec, source, source_id, dec_int {4})
 select {2}, {3}, '{0}', {1}, cast({3} as int) {5}
   from [{0}] x
  where not exists (select 1
                      from data_references d
                     where d.reference_table = '{0}'
-                      and d.reference_uid = x.{1})""".format(table_name,
+                      and d.reference_uid = x.{1});
+insert into data_references (cluster_uid, reference_table, reference_uid)
+select uid, '{0}', source_id
+  from clusters c
+ where source = '{0}';""".format(table_name,
                                                              uid_column,
                                                              ra_column,
                                                              dec_column,
@@ -114,8 +118,11 @@ def create_key(table, key, reference, error_low, error_high, comment,
 def create_table(file_name, file_type, table_name, description,
                  uid_column, is_string_uid,
                  ra_column, dec_column,
+                 brief_columns='*',
                  gal_l=None, gal_b=None,
-                 delimiter=','):
+                 delimiter=',',
+                 reference_table=None,
+                 reference_column=None):
     # Import data first:
     if file_type is not None and file_type in ['ascii', 'ascii.csv']:
         table = Table.read(file_name, format=file_type, delimiter=delimiter)
@@ -136,14 +143,17 @@ def create_table(file_name, file_type, table_name, description,
     print 'Table %s created' % table_name
     # Now proceed metadata:
     conn = get_conn()
-
+    conn.execute("""create unique index idx_{0}_uid
+                                     on [{0}]({1})""".format(table_name,
+                                                             uid_column))
     conn.execute("insert into reference_tables(table_name, uid_column, "
                  "is_string_uid, description, ra_column, dec_column, "
                  "brief_columns, obs_class_global, obs_class_value)"
                  "values ('%s', '%s', %s, '%s', '%s', '%s', "
-                 "'*', 'true', 0)" % (table_name, uid_column,
+                 "'%s', 'true', 0)" % (table_name, uid_column,
                                       int(is_string_uid),
-                                      description, ra_column, dec_column))
+                                      description, ra_column, dec_column,
+                                      brief_columns))
     for colname in table.columns.keys():
         column = table.columns[colname]
         form = column.format[1:] if column.format is not None else 's'
@@ -157,6 +167,30 @@ def create_table(file_name, file_type, table_name, description,
                  values ('%s', '%s', '%s', '%s', '%s', '%s')""" % (
                  table_name, column.name, get_field_datatype(column),
                  column.unit, form, ucd)
+        conn.execute(sql)
+
+    if reference_table is None:
+        cross_match(conn, table, ra_column, dec_column, gal_l, gal_b,
+                    uid_column, table_name)
+    else:
+        rt_uid = conn.execute("""select uid_column
+                                  from reference_tables
+                                 where table_name = '%s'""" % reference_table)
+        rt_uid = rt_uid.fetchone()[0]
+        sql = """
+        insert into data_references
+        (cluster_uid, reference_table, reference_uid)
+        select c.uid, '{0}', {4}
+          from clusters c
+          join data_references d on c.uid = d.cluster_uid
+                                and d.reference_table = '{1}'
+          join [{1}] r on d.reference_uid = r.{2}
+          join [{0}] x on x.{3} = r.{3}""".format(table_name,
+                                                  reference_table,
+                                                  rt_uid,
+                                                  reference_column,
+                                                  uid_column)
+        print sql
         conn.execute(sql)
 
     insert_clusters(conn, table_name, uid_column, ra_column, dec_column,
@@ -208,19 +242,23 @@ if __name__ == '__main__':
     else:
         config = ConfigObj(args.config)
         main = config['main']
-        params = {par: main[par] for par in ['file_name', 'file_type',
-                                        'table_name', 'description',
-                                        'uid_column', 'ra_column', 'dec_column',
-                                        'gal_l', 'gal_b']}
+        params = {}
+        for par in ['file_name', 'file_type', 'table_name', 'description',
+                    'uid_column', 'ra_column', 'dec_column', 'gal_l', 'gal_b',
+                    'brief_columns',
+                    'reference_table', 'reference_column']:
+            if par in main:
+                params[par] = main[par]
         if '/' in params['uid_column']:
             params['uid_column'], _ = params['uid_column'].split('/')
             params['is_string_uid'] = True
         else:
             params['is_string_uid'] = False
+        if 'brief_columns' in params:
+            params['brief_columns'] = ','.join(params['brief_columns'])
         for key in params.keys():
             if params[key] == '':
                 params[key] = None
-        print params
         create_table(**params)
         for key in config['keys'].sections:
             key_s = config['keys'][key]

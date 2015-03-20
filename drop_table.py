@@ -14,7 +14,7 @@ delete from reference_tables_keys where reference_table = '{0}';
 delete from reference_tables_columns where reference_table = '{0}';
 delete from reference_tables where table_name = '{0}';
 delete from clusters where source = '{0}';
-drop table {0}""".format(table_name))
+drop table [{0}]""".format(table_name))
     conn.commit()
 
 
