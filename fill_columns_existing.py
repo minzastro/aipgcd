@@ -9,7 +9,7 @@ Created on Sat Jan 24 12:07:16 2015
 """
 
 import sys
-from AIP_clusters.globals import get_conn
+from aipgcd.globals import get_conn
 
 table = sys.argv[1]
 conn = get_conn()

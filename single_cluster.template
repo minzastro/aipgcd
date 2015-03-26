@@ -3,11 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <link rel=stylesheet href='static/style.css' type='text/css'>
+<link rel="stylesheet" type="text/css" href="/static/DataTables/media/css/jquery.dataTables.css">
+
 <head>
     <title>{{source_id}} from {{source}} ({{uid}})</title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
-    <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.dataTables.js"></script>
+    <!--<script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>-->
     <script type="text/javascript" charset="utf8" language="javascript">
         function xid_change(){
                 $.post('single_cluster_update_xid', {uid: {{uid}},
@@ -37,6 +41,12 @@
                 button.value = 'Saved!';
                 setTimeout(function(){button.value = 'Submit changes'}, 1000);
             });
+            $('#key_values').DataTable({
+                ordering: true,
+                "scrollY":        window.innerHeight - 200,
+                "scrollCollapse": true,
+                paging: false
+            });
         });
     </script>
 </head>
@@ -53,16 +63,19 @@
       <option value='2'>2: Confirmed cluster with spectra</option>
   </select>
 </p>
-<table class='hovertable' width=500>
+<table id="key_values" class="compact hover" width=500>
     <caption>Main parameters</caption>
-    <tr>
-        <th>Parameter</th>
-        <th>Description</th>
-        <th>Value</th>
-        <th>Error (lower)</th>
-        <th>Error (upper)</th>
-        <th>Source</th>
-    </tr>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>Description</th>
+            <th>Value</th>
+            <th>Error (lower)</th>
+            <th>Error (upper)</th>
+            <th>Source</th>
+        </tr>
+    </thead>
+    <tbody>
     {%for par in params%}
     <tr>
         <td>{{par.name}}</td>
@@ -73,6 +86,7 @@
         <td>{{par.source}}</td>
     </tr>
     {%endfor%}
+    </tbody>
 </table>
 
 <hr>

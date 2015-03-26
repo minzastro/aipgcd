@@ -4,7 +4,7 @@ Created on Mon Dec 15 21:03:38 2014
 
 @author: minz
 """
-from AIP_clusters.globals import get_conn, JINJA
+from aipgcd.globals import get_conn, JINJA
 
 def edit_tables():
     t = JINJA.get_template('tables.template')

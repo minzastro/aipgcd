@@ -4,30 +4,41 @@ Created on Mon Dec 15 20:28:43 2014
 
 @author: minz
 """
-
+import sys
+from os import path
+NAME = '%s/..' % path.dirname(__file__)
+sys.path.insert(0, path.abspath(NAME))
+#print sys.path[0]
 import cherrypy
-from AIP_clusters.single_cluster import single_cluster, \
+from single_cluster import single_cluster, \
                                         single_cluster_update_comment, \
                                         single_cluster_update_xid
-from AIP_clusters.edit_tables import edit_tables
-from AIP_clusters.edit_table import edit_table, edit_table_update, \
+from edit_tables import edit_tables
+from edit_table import edit_table, edit_table_update, \
                                     list_table, \
                                     edit_table_key_delete, edit_table_key_update, \
                                     edit_table_update_column
-from AIP_clusters.key_list import key_list, key_list_update
-from AIP_clusters.vo_cone_search import vo_cone_search
-from AIP_clusters.search import search
-from AIP_clusters.globals import get_key_class_list, get_key_description, get_table_columns
+from key_list import key_list, key_list_update
+from vo_cone_search import vo_cone_search
+from search import search
+from samp import get_samp_table
+from globals import get_key_class_list, get_key_description, \
+                                 get_table_columns
+
 
 def error_page_404(status, message, traceback, version):
     return "Error %s - Page does not exist yet. It might appear later!" % status
 cherrypy.config.update({'error_page.404': error_page_404})
 
+
 class HelloWorld(object):
     @cherrypy.expose
     def index(self):
         return search()
-        #return open('static/main.html', 'r').readlines()
+
+    @cherrypy.expose
+    def get_samp_table(self, **params):
+        return get_samp_table(params)
 
     @cherrypy.expose
     def single(self, uid=60036):
@@ -52,8 +63,8 @@ class HelloWorld(object):
     @cherrypy.expose
     def edit_table_update_column(self, table, column_name, data_type,
                                  data_unit, output_format, description):
-        return edit_table_update_column(table, column_name, data_type, data_unit,
-                             output_format, description)
+        return edit_table_update_column(table, column_name, data_type,
+                                        data_unit, output_format, description)
 
     @cherrypy.expose
     def key_list(self):
@@ -104,4 +115,4 @@ class HelloWorld(object):
         return edit_table_update(table, description, uid_column, brief_columns)
 
 if __name__ == '__main__':
-   cherrypy.quickstart(HelloWorld(), config="aipgcd.conf")
+    cherrypy.quickstart(HelloWorld(), config="aipgcd.conf")

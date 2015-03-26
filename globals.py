@@ -7,10 +7,10 @@ Created on Mon Dec 15 21:00:29 2014
 
 #import sqlite3
 from pysqlite2 import dbapi2 as sqlite3
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment, PackageLoader, FileSystemLoader
 import os
 
-JINJA = Environment(loader=PackageLoader('AIP_clusters', '.'))
+JINJA = Environment(loader=FileSystemLoader('.'))
 
 def get_conn(dict_row=False):
     conn = sqlite3.connect('AIP_clusters.sqlite')

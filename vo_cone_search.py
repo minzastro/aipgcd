@@ -4,8 +4,8 @@ Created on Mon Dec 15 21:22:39 2014
 
 @author: minz
 """
-from AIP_clusters.prettiesttable import from_db_cursor
-from AIP_clusters.globals import get_conn, JINJA
+from aipgcd.prettiesttable import from_db_cursor
+from aipgcd.globals import get_conn, JINJA
 
 def vo_cone_search(args):
     """

@@ -4,10 +4,10 @@ Created on Mon Dec 15 21:22:39 2014
 
 @author: minz
 """
-from AIP_clusters.prettiesttable import from_db_cursor
-from AIP_clusters.globals import get_conn, JINJA
-from AIP_clusters.globals import get_table_columns
-from AIP_clusters.globals import null_condition, nullify, get_key_list
+from aipgcd.prettiesttable import from_db_cursor
+from aipgcd.globals import get_conn, JINJA
+from aipgcd.globals import get_table_columns
+from aipgcd.globals import null_condition, nullify, get_key_list
 
 
 def edit_table(table):
