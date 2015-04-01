@@ -63,6 +63,9 @@
       <option value='2'>2: Confirmed cluster with spectra</option>
   </select>
 </p>
+<div><a target="_blank" href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?in_csys=Equatorial&in_equinox=J2000.0&lon={{ra}}&lat={{dec}}&radius=2.0&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&search_type=Near+Position+Search&z_constraint=Unconstrained&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&list_limit=15&img_stamp=YES">NED search</a></div>
+
+<div><a target="_blank" href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={{ra}}d{{dec}}d&CooFrame=ICRS&CooEpoch=2000">SIMBAD search</a></div>
 <table id="key_values" class="compact hover" width=500>
     <caption>Main parameters</caption>
     <thead>
