@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 """
+SQL bindings for AstroPy tables.
+Most of this code was inherited from ATpy.
 Copied and simplified from atpy 0.9.7 by A. Mints (2015).
 """
 
@@ -102,9 +104,9 @@ def read(input, dbtype='sqlite', *args, **kwargs):
     '''
 
     if 'table' in kwargs:
-        table = kwargs.pop('table')
+        atable = kwargs.pop('table')
     else:
-        table = None
+        atable = None
 
     if 'verbose' in kwargs:
         verbose = kwargs.pop('verbose')
@@ -116,6 +118,11 @@ def read(input, dbtype='sqlite', *args, **kwargs):
     else:
         query = None
 
+    if atable is None and query is None:
+        if input[:6].lower() == 'select':
+            query = input
+        else:
+            atable = input
     connection, cursor = sql.connect_database(dbtype, *args, **kwargs)
 
     # If no table is requested, check that there is only one table
@@ -127,15 +134,14 @@ def read(input, dbtype='sqlite', *args, **kwargs):
 
     from ...table import Table
     table = Table()
-
     if not query or dbtype == 'sqlite':
-        if table==None:
+        if atable==None:
             if len(table_names) == 1:
                 table_name = table_names.keys()[0]
             else:
                 raise TableException(table_names, 'table')
         else:
-            table_name = table_names[table]
+            table_name = table_names[atable]
 
         # Find overall names and types for the table
         column_names, column_types, primary_keys = sql.column_info(cursor, dbtype, \
@@ -162,7 +168,13 @@ def read(input, dbtype='sqlite', *args, **kwargs):
             column_types_dict = None
 
         # Override column names and types
-        column_names, column_types = sql.column_info_desc(dbtype, cursor.description, column_types_dict)
+        try:
+            column_names, column_types = sql.column_info_desc(dbtype, cursor.description, column_types_dict)
+        except KeyError as exc:
+            if dbtype == 'sqlite':
+                raise TableException('Only single-column queries are allowed for SQLite')
+            else:
+                raise exc
 
     else:
 
@@ -182,11 +194,11 @@ def read(input, dbtype='sqlite', *args, **kwargs):
 
         if column_types[i] in invalid:
             null = invalid[column_types[i]]
-            results[column][np.equal(np.array(results[column], 
+            results[column][np.equal(np.array(results[column],
                                      dtype=np.object), None)] = null
         else:
             null = 'None'
-        column = table.Column(name=column, data=results[column], 
+        column = table.Column(name=column, data=results[column],
                               dtype=column_types[i], meta={'null': null})
         table.add_column(column)
     return table
@@ -199,7 +211,7 @@ def write(input, output, dbtype='sqlite', *args, **kwargs):
     else:
         overwrite = False
 
-    
+
     # Open the connection
     kwargs['database'] = output
     connection, cursor = sql.connect_database(dbtype, *args, **kwargs)
@@ -233,7 +245,7 @@ def write(input, output, dbtype='sqlite', *args, **kwargs):
     sql.create_table(cursor, dbtype, table_name, columns)
     # Insert row
     for row in input.as_array():
-        sql.insert_row(cursor, dbtype, table_name, 
+        sql.insert_row(cursor, dbtype, table_name,
                        list(row.tolist()), fixnan=not input._masked)
     # Close connection
     connection.commit()

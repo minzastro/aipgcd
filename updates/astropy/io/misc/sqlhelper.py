@@ -1,3 +1,7 @@
+"""
+SQL bindings for AstroPy tables.
+Most of this code was inherited from ATpy.
+"""
 from __future__ import print_function, division
 
 from distutils import version
@@ -39,19 +43,20 @@ def _check_MySQLdb_installed():
 
  # SQLite
 
-PyGreSQL_minimum_version = version.LooseVersion('3.8.1')
+PsycoPG2_minimum_version = version.LooseVersion('3.8.1')
 
 try:
-    import pgdb
-    PyGreSQL_installed = True
+    import psycopg2 as pgdb
+    #import pgdb
+    PsycoPG2_installed = True
 except:
-    PyGreSQL_installed = False
+    PsycoPG2_installed = False
 
 
-def _check_PyGreSQL_installed():
-    if not PyGreSQL_installed:
-        raise Exception("Cannot read/write PostGreSQL tables - PyGreSQL " + \
-            PyGreSQL_minimum_version.vstring + " or later required")
+def _check_PsycoPG2_installed():
+    if not PsycoPG2_installed:
+        raise Exception("Cannot read/write PostGreSQL tables - PsycoPG2 " + \
+            PsycoPG2_minimum_version.vstring + " or later required")
 
 # Type conversion dictionary
 
@@ -110,6 +115,7 @@ type_dict_rev['real'] = np.float64
 
 type_dict_rev['text'] = np.str
 type_dict_rev['varchar'] = np.str
+type_dict_rev['bpchar'] = np.str
 type_dict_rev['blob'] = np.str
 type_dict_rev['timestamp'] = np.str
 type_dict_rev['datetime'] = np.str
@@ -119,6 +125,21 @@ type_dict_rev['decimal'] = np.str
 type_dict_rev['numeric'] = np.str
 type_dict_rev['enum'] = np.str
 
+PG_OIDS = {}
+
+
+def fill_pg_oids(connection):
+    """
+    Fill PG_OIDS with oid:type pairs.
+    """
+    global PG_OIDS
+    cursor = connection.cursor()
+    cursor.execute("""select oid, typname
+                        from pg_type
+                       where oid < 10000
+                         and typcategory not in ('C', 'A')""")
+    for row in cursor.fetchall():
+        PG_OIDS[row[0]] = row[1]
 
 # Define symbol to use in insert statement
 
@@ -148,7 +169,7 @@ def numpy_type(sql_type):
     sql_type = sql_type.split('(')[0].lower()
     if not sql_type in type_dict_rev:
         print("WARNING: need to define reverse type for " + str(sql_type))
-        print("         Please report this on the ATpy forums!")
+        print("         Please report this!")
         print("         This type has been converted to a string")
         sql_type = 'text'
     dtype = type_dict_rev[sql_type]
@@ -242,8 +263,10 @@ def column_info(cursor, dbtype, table_name):
     elif dbtype=='postgres':
         cursor.execute('SELECT * FROM ' + table_name + ' WHERE 1=0')
         for column in cursor.description:
-            types.append(numpy_type(column[1]))
-            names.append(str(column[0]))
+            #print(column)
+            #import ipdb; ipdb.set_trace()
+            types.append(numpy_type(PG_OIDS[column.type_code]))
+            names.append(column.name)
     return names, types, primary_keys
 
 
@@ -285,8 +308,9 @@ def connect_database(dbtype, *args, **kwargs):
         _check_MySQLdb_installed()
         connection = MySQLdb.connect(*args, **kwargs)
     elif dbtype == 'postgres':
-        _check_PyGreSQL_installed()
+        _check_PsycoPG2_installed()
         connection = pgdb.connect(*args, **kwargs)
+        fill_pg_oids(connection)
     else:
         raise Exception('dbtype should be one of sqlite/mysql/postgres, got %s' % dbtype)
     cursor = connection.cursor()
