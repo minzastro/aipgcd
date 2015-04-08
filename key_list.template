@@ -57,12 +57,14 @@
                     xkey = frm.querySelector('[name=new_key_name]').value;
                 }
                 $.post('key_list_update', {key: xkey,
-                                           key_class: frm.querySelector('#key_class').value,
-                                           description: frm.querySelector('#description').value,
-                                           format: frm.querySelector('[name=output_format]').value,
-                                          });
-                $('#dialog').dialog('close');
-                window.location.reload();
+                                              key_class: frm.querySelector('#key_class').value,
+                                              description: frm.querySelector('#description').value,
+                                              format: frm.querySelector('[name=output_format]').value,
+                                             },
+                                             function(response){
+                                                $('#dialog').dialog('close');
+                                                window.location.reload();
+                                            });
             });
         });
     </script>

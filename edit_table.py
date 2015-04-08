@@ -109,7 +109,7 @@ def edit_table_key_update(table, mode, uid, key,
                                   where uid = %s""" % uid).rowcount
     else:
         check = 0
-    if mode == 'edit' or check <> 0:
+    if mode == 'edit' or check > 0:
         conn.execute(u"""
             update reference_tables_keys
                set reference_column = %s,
