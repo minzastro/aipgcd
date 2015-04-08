@@ -6,6 +6,8 @@ Created on Mon Dec 15 21:22:39 2014
 """
 from prettiesttable import from_db_cursor
 from globals import get_conn, JINJA
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 def vo_cone_search(args):
     """
@@ -15,6 +17,16 @@ def vo_cone_search(args):
     """
     ra = args['ra']
     decl = args['decl']
+    if ':' in ra or ':' in decl:
+        coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
+    elif 'h' in ra:
+        coord = SkyCoord(ra, decl)
+    elif '.' in ra:
+        coord = SkyCoord(ra, decl, unit='deg')
+    else:
+        coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
+    ra = coord.ra.deg
+    decl = coord.dec.deg
     radius = args['radius']
     conditions = []
     if 'table' in args and args['table'] == 'on':

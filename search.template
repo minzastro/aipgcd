@@ -40,7 +40,7 @@
         <form method="get" action="../single"><fieldset>
             <legend>Single cluster selection:</legend>
               <label for="uid">Cluster UID: </label>
-              <input type="text" value="60036" name="uid" />
+              <input type="text" value="2294" name="uid" />
               <button type="submit">Get data</button>
               </fieldset>
         </form>
