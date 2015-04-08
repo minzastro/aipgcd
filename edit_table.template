@@ -86,16 +86,19 @@
                                                      error_column_low: frm.querySelector('#key_error_column_low').value,
                                                      error_column_high: frm.querySelector('#key_error_column_high').value,
                                                      comment: frm.querySelector('#key_comment').value,
+                                                    },
+                                                    function(response){
+                                                      $('#key_dialog').dialog('close');
+                                                      window.location.reload();
                                                     });
-                    $('#key_dialog').dialog('close');
-                    window.location.reload();
                 } else {
                     alert('Reference column is not selected!');
                 }
             });
 
             $('#new_key').click(function(){
-               $("#key_dialog input[name='key_mode'").val('new');
+               $("#key_dialog input[name='key_uid']").val(0);
+               $("#key_dialog input[name='key_mode']").val('new');
                $('#key_dialog').dialog('open');
             });
 
