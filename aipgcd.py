@@ -7,7 +7,6 @@ Created on Mon Dec 15 20:28:43 2014
 import sys
 from os import path
 NAME = '%s/..' % path.dirname(__file__)
-#sys.path.insert(0, path.abspath(NAME))
 sys.path.insert(0, path.abspath(path.dirname(__file__)))
 print sys.path
 

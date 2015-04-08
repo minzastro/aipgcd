@@ -69,7 +69,7 @@ def single_cluster(uid):
     CONN = get_conn(dict_row=True)
     cur = CONN.cursor()
     html_data = {}
-    result = CONN.execute("select source, source_id, comment, xidflag"
+    result = CONN.execute("select source, source_id, comment, xidflag, ra, dec"
                           " from clusters where uid = %s" % uid).fetchone()
     html_data = dict(result)
     html_data['uid'] = uid
