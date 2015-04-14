@@ -76,7 +76,7 @@ def single_cluster(uid):
     html_data['params'] = []
     html_data['tables'] = []
     for row in cur.execute("""select rt.table_name,
-                                     rt.uid_column, rt.is_string_uid,
+                                     rt.uid_column,
                                      rt.extra_column, rt.description,
                                      rt.brief_columns
                                 from reference_tables rt

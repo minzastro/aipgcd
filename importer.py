@@ -116,8 +116,7 @@ def create_key(table, key, reference, error_low, error_high, comment,
 
 
 def create_table(file_name, file_type, table_name, description,
-                 uid_column, is_string_uid,
-                 ra_column, dec_column,
+                 uid_column, ra_column, dec_column,
                  brief_columns='*',
                  gal_l=None, gal_b=None,
                  delimiter=',',
@@ -147,11 +146,10 @@ def create_table(file_name, file_type, table_name, description,
                                      on [{0}]({1})""".format(table_name,
                                                              uid_column))
     conn.execute("insert into reference_tables(table_name, uid_column, "
-                 "is_string_uid, description, ra_column, dec_column, "
+                 "description, ra_column, dec_column, "
                  "brief_columns, obs_class_global, obs_class_value)"
-                 "values ('%s', '%s', %s, '%s', '%s', '%s', "
+                 "values ('%s', '%s', '%s', '%s', '%s', "
                  "'%s', 'true', 0)" % (table_name, uid_column,
-                                      int(is_string_uid),
                                       description, ra_column, dec_column,
                                       brief_columns))
     for colname in table.columns.keys():
@@ -227,17 +225,13 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--uid', type=str, default=None,
                         help='UID column name')
 
-    parser.add_argument('--string_uid', action="store_true",
-                        default=False,
-                        help='UID column is a string')
-
     parser.add_argument('-D', '--description', type=str, default=None,
                         help='Table description')
 
     args = parser.parse_args()
     if args.config is None:
         create_table(args.file, args.type, args.table, args.description,
-                     args.uid, args.string_uid, args.ra, args.dec,
+                     args.uid, args.ra, args.dec,
                      delimiter=args.delimiter)
     else:
         config = ConfigObj(args.config)
@@ -249,11 +243,6 @@ if __name__ == '__main__':
                     'reference_table', 'reference_column']:
             if par in main:
                 params[par] = main[par]
-        if '/' in params['uid_column']:
-            params['uid_column'], _ = params['uid_column'].split('/')
-            params['is_string_uid'] = True
-        else:
-            params['is_string_uid'] = False
         if 'brief_columns' in params:
             params['brief_columns'] = ','.join(params['brief_columns'])
         for key in params.keys():
