@@ -4,12 +4,15 @@
 
 <link rel=stylesheet href='static/style.css' type='text/css'>
 <link rel=stylesheet href='static/jquery-ui.theme.css' type='text/css'>
+<link rel="stylesheet" type="text/css" href="/static/DataTables/media/css/jquery.dataTables.css">
 <link rel=stylesheet href='static/navigation_bar.css' type='text/css'>
 <head>
     <title>AIP cluster database: Key editor</title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
-    <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.dataTables.js"></script>
+    <!--<script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>-->
     <script type="text/javascript" charset="utf8" src="/static/jquery-ui.js"></script>
     <script type="text/javascript" charset="utf8" language="javascript">
         function setSelectByValue(id, value) {
@@ -23,6 +26,17 @@
         }
 
         $(document).ready(function(){
+            $('#key_list').DataTable({
+                ordering: true,
+                autoWidth: false,
+                paging: false,
+                "columns": [
+                { "width": "50px" },
+                { "width": "50px" },
+                { "width": "250px" },
+                { "width": "50px" }]
+            });
+
             $("#dialog").dialog({
                    autoOpen: false,
                    resizable: false,
@@ -75,8 +89,9 @@
 {% include "/static/navigation_bar.html"  %}
 <input type="button" id="new_key" value="Add new key"/>
 <p>Or click on row to edit...</p>
+<div id="key_list_div" style="width: 600px">
 {{ key_list }}
-
+</div>
     <div id="dialog" title="Edit key" id="edit_key">
         <div>
             <input type='radio' name='key' value='select_from' checked>
