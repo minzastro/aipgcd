@@ -47,8 +47,10 @@
 
         <h2>This is a full-power search</h2>
         <form method="post" action="../vo_cone_search">
-            <fieldset>
-              <legend>VO cone search:</legend>
+            <label for="fullsky">Full sky search</label>
+            <input type="checkbox" name="fullsky" />
+            <fieldset id="vocone">
+              <legend>VO cone:</legend>
               <label for="ra">RA (degrees): </label>
               <input type="text" value="" name="ra" />
               <label for="decl">DE (degrees): </label>

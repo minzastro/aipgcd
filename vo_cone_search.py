@@ -15,20 +15,24 @@ def vo_cone_search(args):
     ra, decl in degrees,
     radius in arcmin.
     """
-    ra = args['ra']
-    decl = args['decl']
-    if ':' in ra or ':' in decl:
-        coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
-    elif 'h' in ra:
-        coord = SkyCoord(ra, decl)
-    elif '.' in ra:
-        coord = SkyCoord(ra, decl, unit='deg')
-    else:
-        coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
-    ra = coord.ra.deg
-    decl = coord.dec.deg
-    radius = args['radius']
     conditions = []
+    if 'fullsky' not in args:
+        ra = args['ra']
+        decl = args['decl']
+        if ':' in ra or ':' in decl:
+            coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
+        elif 'h' in ra:
+            coord = SkyCoord(ra, decl)
+        elif '.' in ra:
+            coord = SkyCoord(ra, decl, unit='deg')
+        else:
+            coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
+        ra = coord.ra.deg
+        decl = coord.dec.deg
+        radius = args['radius']
+        conditions.append("""
+        and haversine(c.ra, c.dec, {0}, {1}) < {2}./60.""".format(ra, decl,
+                                                              radius))
     if 'table' in args and args['table'] == 'on':
         conditions.append("""and %s (select 1
                                    from data_references dr
@@ -54,10 +58,10 @@ def vo_cone_search(args):
                     group_concat(distinct r.reference_table) as Tables
                from clusters c
                join data_references r on r.cluster_uid = c.uid
-              where haversine(c.ra, c.dec, {0}, {1}) < {2}./60.
-                {3}
+              where 1=1
+                %s
               group by c.uid, ra, dec, c.source, source_id
-              order by c.ra""".format(ra, decl, radius, ' '.join(conditions))
+              order by c.ra""" % ' '.join(conditions)
     #print sql
     t1 = from_db_cursor(conn.execute(sql))
     html_data = {'table': t1.get_html_string(attributes={'border': 1, 'id': 'search'},
