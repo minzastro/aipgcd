@@ -22,7 +22,7 @@ def vo_cone_search(args):
         if ':' in ra or ':' in decl:
             coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
         elif 'h' in ra:
-            coord = SkyCoord(ra, decl)
+            coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
         elif '.' in ra:
             coord = SkyCoord(ra, decl, unit='deg')
         else:
@@ -64,6 +64,8 @@ def vo_cone_search(args):
               order by c.ra""" % ' '.join(conditions)
     #print sql
     t1 = from_db_cursor(conn.execute(sql))
-    html_data = {'table': t1.get_html_string(attributes={'border': 1, 'id': 'search'},
+    html_data = {'table': t1.get_html_string(attributes={'border': 1,
+                                                         'id': 'search',
+                                                         'columns': 'IFFSIS'},
                                              unescape=[('Tables')])}
     return t.render(html_data)

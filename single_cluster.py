@@ -7,6 +7,9 @@ from prettiesttable import from_db_cursor, PrettiestTable
 from globals import get_conn, JINJA, get_brief_columns, format_value
 
 def single_cluster_update_comment(uid, comment):
+    """
+    Updates comment for a cluster.
+    """
     CONN = get_conn()
     xcomment = comment.replace("'", "''")
     CONN.execute("update clusters set comment = '%s' where uid = %s" % (
@@ -15,6 +18,9 @@ def single_cluster_update_comment(uid, comment):
     return None
 
 def single_cluster_update_xid(uid, xid):
+    """
+    Updates detection status for a cluster.
+    """
     CONN = get_conn()
     CONN.execute("update clusters set xidflag = %s where uid = %s" % (
         xid, uid))

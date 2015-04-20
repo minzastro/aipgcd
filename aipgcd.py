@@ -8,9 +8,9 @@ import sys
 from os import path
 NAME = '%s/..' % path.dirname(__file__)
 sys.path.insert(0, path.abspath(path.dirname(__file__)))
-print sys.path
 
 import cherrypy
+from cherrypy.lib.static import serve_file
 from single_cluster import single_cluster, \
                                         single_cluster_update_comment, \
                                         single_cluster_update_xid
@@ -22,7 +22,7 @@ from edit_table import edit_table, edit_table_update, \
 from key_list import key_list, key_list_update
 from vo_cone_search import vo_cone_search
 from search import search
-#from samp import get_samp_table
+from samp import get_samp_table, data_to_votable
 from globals import get_key_class_list, get_key_description, \
                                  get_table_columns
 
@@ -36,10 +36,6 @@ class HelloWorld(object):
     @cherrypy.expose
     def index(self):
         return search()
-
-    #@cherrypy.expose
-    #def get_samp_table(self, **params):
-#        return get_samp_table(params)
 
     @cherrypy.expose
     def single(self, uid=60036):
@@ -108,12 +104,24 @@ class HelloWorld(object):
 
     @cherrypy.expose
     def vo_cone_search(self, **params):
-        print params
         return vo_cone_search(params)
 
     @cherrypy.expose
     def edit_table_update(self, table, description, uid_column, brief_columns):
         return edit_table_update(table, description, uid_column, brief_columns)
+
+    @cherrypy.expose
+    def get_samp_table(self, **params):
+        result = data_to_votable(params['coltypes'],
+                                 params['header[]'],
+                                 params['data[]'])
+        if params['samp'] == 'true':
+            return 'http://127.0.0.1:8444/static/output_cache/%s' % path.basename(result)
+        else:
+            #print path.abspath(result)
+            #return serve_file(path.abspath(result), "application/x-download",
+            #                  "attachment")
+            return 'http://127.0.0.1:8444/static/output_cache/%s' % path.basename(result)
 
 if __name__ == '__main__':
     cherrypy.quickstart(HelloWorld(), config="aipgcd.conf")
