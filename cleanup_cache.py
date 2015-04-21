@@ -15,4 +15,6 @@ def cleanup_cache():
             os.unlink('static/output_cache/'+filename)
 
 if __name__ == '__main__':
-    cleanup_cache()
+    while True:
+        cleanup_cache()
+        time.sleep(600)
