@@ -16,15 +16,20 @@ from single_cluster import single_cluster, \
                                         single_cluster_update_xid
 from edit_tables import edit_tables
 from edit_table import edit_table, edit_table_update, \
-                                    list_table, \
-                                    edit_table_key_delete, edit_table_key_update, \
-                                    edit_table_update_column
+                       list_table, \
+                       edit_table_key_delete, edit_table_key_update, \
+                       edit_table_update_column
 from key_list import key_list, key_list_update
 from vo_cone_search import vo_cone_search
 from search import search
-from samp import get_samp_table, data_to_votable
+from samp import data_to_votable
 from globals import get_key_class_list, get_key_description, \
-                                 get_table_columns
+                    get_table_columns
+
+if path.dirname(__file__).startswith('/srv'):
+    AIPGCD_URL = 'archie.aip.de'
+else:
+    AIPGCD_URL = '127.0.0.1:8444'
 
 
 def error_page_404(status, message, traceback, version):
@@ -81,8 +86,8 @@ class HelloWorld(object):
                               reference_column, error_column_low,
                               error_column_high, comment):
         edit_table_key_update(table, mode, uid, key,
-                                     reference_column, error_column_low,
-                                     error_column_high, comment)
+                              reference_column, error_column_low,
+                              error_column_high, comment)
         raise cherrypy.InternalRedirect('edit_table?table=%s' % str(table))
 
     @cherrypy.expose
@@ -115,13 +120,8 @@ class HelloWorld(object):
         result = data_to_votable(params['coltypes'],
                                  params['header[]'],
                                  params['data[]'])
-        if params['samp'] == 'true':
-            return 'http://127.0.0.1:8444/static/output_cache/%s' % path.basename(result)
-        else:
-            #print path.abspath(result)
-            #return serve_file(path.abspath(result), "application/x-download",
-            #                  "attachment")
-            return 'http://127.0.0.1:8444/static/output_cache/%s' % path.basename(result)
+        return 'http://%s/static/output_cache/%s' % (AIPGCD_URL,
+                                                     path.basename(result))
 
 if __name__ == '__main__':
     cherrypy.quickstart(HelloWorld(), config="aipgcd.conf")

@@ -71,7 +71,7 @@
 
 <div><a target="_blank" href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={{ra}}d{{dec}}d&CooFrame=ICRS&CooEpoch=2000">SIMBAD search</a></div>
 
-<input type='button' onclick='samp_table("key_values")' value='Send keys to SAMP'/>
+<input type='button' onclick='samp_table("key_values", true)' value='Send keys to SAMP'/>
 <table id="key_values" class="compact hover" width=500 columns='SSSSSS'>
     <caption>Main parameters</caption>
     <thead>
