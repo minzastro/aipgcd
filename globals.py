@@ -5,19 +5,23 @@ Created on Mon Dec 15 21:00:29 2014
 @author: minz
 """
 
-#import sqlite3
 from pysqlite2 import dbapi2 as sqlite3
-from jinja2 import Environment, PackageLoader, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 import os
 import sqllist
 sqllist.load_defaults()
+
+if os.path.dirname(__file__).startswith('/srv'):
+    DB_LOCATION = '/srv/db/cluster-db/'
+else:
+    DB_LOCATION = ''
 
 
 JINJA = Environment(loader=FileSystemLoader('.'))
 
 
 def get_conn(dict_row=False):
-    conn = sqlite3.connect('AIP_clusters.sqlite')
+    conn = sqlite3.connect('%sAIP_clusters.sqlite' % DB_LOCATION)
     conn.enable_load_extension(True)
     conn.execute("select load_extension('%s/sqlite_extentions/libsqlitefunctions.so')" % os.path.dirname(__file__))
     conn.enable_load_extension(False)
@@ -48,8 +52,14 @@ def nullify(value):
         return value
 
 def get_key_list(conn):
-    keys = conn.execute("select distinct key || ',' || ifnull(subkey, 'none') from keys")
-    return [item[0] for item in keys.fetchall()]
+    keys = conn.execute("select key, subkey from keys").fetchall()
+    result = []
+    for key, subkey in keys:
+        if subkey is None:
+            result.append(key)
+        else:
+            result.append('%s,%s' % (key, subkey))
+    return result
 
 def get_subkey_list(key):
     keys = get_conn().execute("select distinct subkey from keys where key = '%s'" % key)

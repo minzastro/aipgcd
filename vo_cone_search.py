@@ -40,11 +40,12 @@ def vo_cone_search(args):
                                     and dr.reference_table = '%s')""" % (
                                     args['has_record'], args['in_table']))
     if 'key' in args and args['key'] == 'on':
-        key, subkey = args['key_list'].split(',')
-        if subkey == 'none':
-            subkey_cond = 'k.subkey is null'
-        else:
+        if ',' in args['key_list']:
+            key, subkey = args['key_list'].split(',')
             subkey_cond = "k.subkey ='%s'" % subkey
+        else:
+            key = args['key_list']
+            subkey_cond = 'k.subkey is null'
         conditions.append("""and %s (select 1
                                        from reference_tables_keys k
                                        join data_references dr on dr.reference_table = k.reference_table

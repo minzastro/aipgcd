@@ -102,7 +102,10 @@ def edit_table_key_update(table, mode, uid, key,
                     reference_column, error_column_low, error_column_high,
                     comment):
     conn = get_conn()
-    key, subkey = key.split(',')
+    if ',' in key:
+        key, subkey = key.split(',')
+    else:
+        subkey = None
     if uid != '':
         check = conn.execute(u"""select key
                                    from reference_tables_keys
