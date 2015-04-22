@@ -6,6 +6,7 @@ Created on Mon Dec  8 15:51:22 2014
 from prettiesttable import from_db_cursor, PrettiestTable
 from globals import get_conn, JINJA, get_brief_columns, format_value
 
+
 def single_cluster_update_comment(uid, comment):
     """
     Updates comment for a cluster.
@@ -17,6 +18,7 @@ def single_cluster_update_comment(uid, comment):
     CONN.commit()
     return None
 
+
 def single_cluster_update_xid(uid, xid):
     """
     Updates detection status for a cluster.
@@ -26,6 +28,18 @@ def single_cluster_update_xid(uid, xid):
         xid, uid))
     CONN.commit()
     return None
+
+
+def single_cluster_update_obs_flag(uid, obs_flag):
+    """
+    Updates obs_flag for a cluster.
+    """
+    CONN = get_conn()
+    CONN.execute("update clusters set obs_flag = %s where uid = %s" % (
+        obs_flag, uid))
+    CONN.commit()
+    return None
+
 
 def select_cluster_key(uid, table_data, conn):
     params = []
@@ -75,10 +89,13 @@ def single_cluster(uid):
     CONN = get_conn(dict_row=True)
     cur = CONN.cursor()
     html_data = {}
-    result = CONN.execute("select source, source_id, comment, xidflag, ra, dec"
+    result = CONN.execute("select source, source_id, comment, xidflag, "
+                          "ra, dec, obs_flag"
                           " from clusters where uid = %s" % uid).fetchone()
     html_data = dict(result)
     html_data['uid'] = uid
+    html_data['ra'] = '%.6f' % html_data['ra']
+    html_data['dec'] = '%.6f' % html_data['dec']
     html_data['params'] = []
     html_data['tables'] = []
     for row in cur.execute("""select rt.table_name,

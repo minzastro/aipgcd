@@ -19,10 +19,15 @@
                 $.post('single_cluster_update_xid', {uid: {{uid}},
                                                          xid: document.getElementById('detection_status').value});
         }
+        function obs_flag_change(){
+                $.post('single_cluster_update_obs_flag', {uid: {{uid}},
+                                                              obs_flag: document.getElementById('obs_flag').value});
+        }
 
         $(window).load(function(){
 
             document.getElementById('detection_status').value = {{xidflag}};
+            document.getElementById('obs_flag').value = {{obs_flag}};
             $(".header").click(function () {
                 $header = $(this);
                 //getting the next element
@@ -58,18 +63,27 @@
 <body>
 <div style='float:left'>
     <a href='index'>Main menu</a>
-<h1>{{source_id}} from {{source}} ({{uid}})</h1>
+<h1>{{source_id}} from {{source}} (UID={{uid}})</h1>
+<h2>Equatorial coordinates {{ra}}d {{dec}}d</h2>
 <p>Detection status
   <select id="detection_status" onchange="xid_change()">
       <option value='-1'>-1: Not a cluster</option>
-      <option value='0'>0: Not identified</option>
+      <option value='0'>0: Undecided</option>
       <option value='1'>1: Confirmed cluster</option>
       <option value='2'>2: Confirmed cluster with spectra</option>
   </select>
 </p>
-<div><a target="_blank" href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?in_csys=Equatorial&in_equinox=J2000.0&lon={{ '%.6f' |format(ra)}}d&lat={{ '%.6f' |format(dec)}}d&radius=2.0&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&search_type=Near+Position+Search&z_constraint=Unconstrained&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&list_limit=15&img_stamp=YES">NED search</a></div>
+<p>Observation status
+  <select id="obs_flag" onchange="obs_flag_change()">
+      <option value='0'>0: No data</option>
+      <option value='1'>1: In a large survey</option>
+      <option value='2'>2: Dedicated photometry</option>
+      <option value='3'>3: Dedicated spectroscopy</option>
+  </select>
+</p>
+<div style="float: left; margin-right: 20px;"><a target="_blank" href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?in_csys=Equatorial&in_equinox=J2000.0&lon={{ra}}d&lat={{dec}}d&radius=2.0&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&search_type=Near+Position+Search&z_constraint=Unconstrained&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&list_limit=15&img_stamp=YES">NED search</a></div>
 
-<div><a target="_blank" href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={{ '%.6f' |format(ra)}}d{{ '%.6f' |format(dec)}}d&CooFrame=ICRS&CooEpoch=2000">SIMBAD search</a></div>
+<div><a target="_blank" href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={{ra}}d{{dec}}d&CooFrame=ICRS&CooEpoch=2000">SIMBAD search</a></div>
 
 <input type='button' onclick='samp_table("key_values", true)' value='Send keys to SAMP'/>
 <table id="key_values" class="compact hover" width=500 columns='SSSSSS'>

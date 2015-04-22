@@ -12,8 +12,9 @@ sys.path.insert(0, path.abspath(path.dirname(__file__)))
 import cherrypy
 from cherrypy.lib.static import serve_file
 from single_cluster import single_cluster, \
-                                        single_cluster_update_comment, \
-                                        single_cluster_update_xid
+                           single_cluster_update_comment, \
+                           single_cluster_update_xid, \
+                           single_cluster_update_obs_flag
 from edit_tables import edit_tables
 from edit_table import edit_table, edit_table_update, \
                        list_table, \
@@ -53,6 +54,10 @@ class HelloWorld(object):
     @cherrypy.expose
     def single_cluster_update_xid(self, uid, xid):
         return single_cluster_update_xid(uid, xid)
+
+    @cherrypy.expose
+    def single_cluster_update_obs_flag(self, uid, obs_flag):
+        return single_cluster_update_obs_flag(uid, obs_flag)
 
     @cherrypy.expose
     def edit_tables(self):
