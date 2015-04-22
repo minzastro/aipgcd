@@ -9,7 +9,7 @@ from globals import get_conn, JINJA
 def key_list():
     t = JINJA.get_template('key_list.template')
     t1 = from_db_cursor(get_conn().execute("""
-        select key, key_class, description, data_format
+        select key, subkey, description, data_format
           from keys k"""))
     select_key = []
     for row in t1._rows:
@@ -20,30 +20,30 @@ def key_list():
                                                                 'id': 'key_list'}),
                      'select_key': select_key})
 
-def key_list_update(key, key_class, description, format):
+def key_list_update(key, subkey, description, format):
     conn = get_conn()
     check = conn.execute(u"""select count(*)
                                from keys
                               where key = '%s'
-                                and ifnull(key_class, 'None') = '%s'""" % (key, key_class)).fetchone()[0]
-    print key, key_class, check
+                                and ifnull(subkey, 'None') = '%s'""" % (key, subkey)).fetchone()[0]
+    print key, subkey, check
     if check > 0:
         conn.execute(u"""update keys
                             set description = '%s',
                                 data_format = '%s'
                               where key = '%s'
-                                and ifnull(key_class, 'None') = '%s'""" % (description,
+                                and ifnull(subkey, 'None') = '%s'""" % (description,
                                                            format, 
-                                                           key, key_class))
+                                                           key, subkey))
     else:
         print u"""
-         insert into keys (key, key_class, description, data_format)
+         insert into keys (key, subkey, description, data_format)
          values ('%s', '%s', '%s', '%s');
-        """ % (key, key_class, description, format)
+        """ % (key, subkey, description, format)
         conn.execute(u"""
-         insert into keys (key, key_class, description, data_format)
+         insert into keys (key, subkey, description, data_format)
          values ('%s', '%s', '%s', '%s');
-        """ % (key, key_class, description, format))
+        """ % (key, subkey, description, format))
     conn.commit()
     return None
         

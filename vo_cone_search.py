@@ -40,17 +40,17 @@ def vo_cone_search(args):
                                     and dr.reference_table = '%s')""" % (
                                     args['has_record'], args['in_table']))
     if 'key' in args and args['key'] == 'on':
-        key, key_class = args['key_list'].split(',')
-        if key_class == 'none':
-            key_class_cond = 'k.key_class is null'
+        key, subkey = args['key_list'].split(',')
+        if subkey == 'none':
+            subkey_cond = 'k.subkey is null'
         else:
-            key_class_cond = "k.key_class ='%s'" % key_class
+            subkey_cond = "k.subkey ='%s'" % subkey
         conditions.append("""and %s (select 1
                                        from reference_tables_keys k
                                        join data_references dr on dr.reference_table = k.reference_table
                                       where dr.cluster_uid = c.uid
                                         and key = '%s'
-                                        and %s)""" % (args['has_key'], key, key_class_cond))
+                                        and %s)""" % (args['has_key'], key, subkey_cond))
     conn = get_conn()
     t = JINJA.get_template('vo_cone_search.template')
 

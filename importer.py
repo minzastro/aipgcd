@@ -103,12 +103,12 @@ def cross_match(conn, table, ra_column, dec_column, gal_l, gal_b,
 def create_key(table, key, reference, error_low, error_high, comment,
                comment_column):
     conn = get_conn()
-    key, key_class = key.split(',')
-    row = [key, key_class, table, reference, error_low, error_high,
+    key, subkey = key.split(',')
+    row = [key, subkey, table, reference, error_low, error_high,
            comment, comment_column]
     row = ["'%s'" % item if item is not None and item != ''
            else 'null' for item in row]
-    conn.execute("""insert into reference_tables_keys (key, key_class,
+    conn.execute("""insert into reference_tables_keys (key, subkey,
     reference_table, reference_column, error_column_low, error_column_high,
     comment, comment_column)
     values (%s)""" % ','.join(row))

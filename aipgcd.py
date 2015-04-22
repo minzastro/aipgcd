@@ -23,7 +23,7 @@ from key_list import key_list, key_list_update
 from vo_cone_search import vo_cone_search
 from search import search
 from samp import data_to_votable
-from globals import get_key_class_list, get_key_description, \
+from globals import get_subkey_list, get_key_description, \
                     get_table_columns
 
 if path.dirname(__file__).startswith('/srv'):
@@ -73,8 +73,8 @@ class HelloWorld(object):
         return key_list()
 
     @cherrypy.expose
-    def key_list_update(self, key, key_class, description, format):
-        return key_list_update(key, key_class, description, format)
+    def key_list_update(self, key, subkey, description, format):
+        return key_list_update(key, subkey, description, format)
 
     @cherrypy.expose
     def edit_table_key_delete(self, table, uid):
@@ -91,13 +91,13 @@ class HelloWorld(object):
         raise cherrypy.InternalRedirect('edit_table?table=%s' % str(table))
 
     @cherrypy.expose
-    def get_key_class_list(self, key):
-        return ','.join(get_key_class_list(key))
+    def get_subkey_list(self, key):
+        return ','.join(get_subkey_list(key))
 
     @cherrypy.expose
     def get_key_description(self, key):
-        key, key_class = key.split(',')
-        return ','.join(map(str, get_key_description(key, key_class)))
+        key, subkey = key.split(',')
+        return ','.join(map(str, get_key_description(key, subkey)))
 
     @cherrypy.expose
     def get_table_columns(self, table):

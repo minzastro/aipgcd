@@ -34,15 +34,15 @@ def edit_table(table):
                  'column_names': columns
                  }
     t1 = from_db_cursor(conn.execute("""
-             select r.uid, k.key, k.key_class, k.description, k.data_format,
+             select r.uid, k.key, k.subkey, k.description, k.data_format,
                     r.reference_column, r.error_column_low,
                     r.error_column_high, r.comment,
                     "Delete"
                from keys k
                join reference_tables_keys r on r.key = k.key
-                                    and ifnull(r.key_class, '') = ifnull(k.key_class, '')
+                                    and ifnull(r.subkey, '') = ifnull(k.subkey, '')
               where r.reference_table = '%s'
-                  order by k.key, k.key_class""" % (table)))
+                  order by k.key, k.subkey""" % (table)))
     html_data['keys'] = t1.get_html_string(attributes={'border': 1,
                                                        'id': 'keys_table'})
     t2 = from_db_cursor(conn.execute("""
@@ -102,7 +102,7 @@ def edit_table_key_update(table, mode, uid, key,
                     reference_column, error_column_low, error_column_high,
                     comment):
     conn = get_conn()
-    key, key_class = key.split(',')
+    key, subkey = key.split(',')
     if uid != '':
         check = conn.execute(u"""select key
                                    from reference_tables_keys
@@ -117,14 +117,14 @@ def edit_table_key_update(table, mode, uid, key,
                    error_column_high = %s,
                    comment = %s,
                    key = %s,
-                   key_class = %s
+                   subkey = %s
              where uid = %s
         """ % (nullify(reference_column),
                nullify(error_column_low),
                nullify(error_column_high),
                nullify(comment),
                nullify(key),
-               nullify(key_class),
+               nullify(subkey),
                uid))
         conn.commit()
     else:
@@ -133,15 +133,15 @@ def edit_table_key_update(table, mode, uid, key,
               from reference_tables_keys
              where reference_table = '%s'
                and key = '%s'
-               and %s""" % (table, key, null_condition('key_class', key_class)))
+               and %s""" % (table, key, null_condition('subkey', subkey)))
         if r1.rowcount > 0:
             return "Already exists!"
         else:
             conn.execute(u"""
-            insert into reference_tables_keys(reference_table, key, key_class,
+            insert into reference_tables_keys(reference_table, key, subkey,
                 reference_column, error_column_low, error_column_high, comment)
             values ("%s", "%s", %s, %s, %s, %s, %s)
-            """ % (table, key, nullify(key_class),
+            """ % (table, key, nullify(subkey),
                   nullify(reference_column),
                   nullify(error_column_low),
                   nullify(error_column_high),

@@ -32,15 +32,15 @@ def select_cluster_key(uid, table_data, conn):
     for key in conn.cursor().execute("""
         select kr.reference_column, kr.is_string,
                kr.error_column_low, kr.error_column_high, kr.comment_column,
-               k.key, k.key_class, k.description,
+               k.key, k.subkey, k.description,
                ifnull(k.data_format, rc.output_format) as output_format
           from reference_tables_keys kr
           join keys k on k.key = kr.key
-                     and ifnull(k.key_class, 'null') = ifnull(kr.key_class, 'null')
+                     and ifnull(k.subkey, 'null') = ifnull(kr.subkey, 'null')
           join reference_tables_columns rc on kr.reference_table = rc.reference_table
                                           and kr.reference_column = rc.column_name
          where kr.reference_table = '%s'
-      order by k.key, k.key_class""" % table_data['table_name']):
+      order by k.key, k.subkey""" % table_data['table_name']):
         select = 'x.[%s] as reference_column' % key['reference_column']
         for extra in ['error_column_low', 'error_column_high',
                       'comment_column']:
@@ -139,13 +139,13 @@ def single_cluster(uid):
             html_data['params'].extend(select_cluster_key(uid, row, CONN))
 
     for key in CONN.cursor().execute("""
-    select k.key, k.key_class, k.description,
+    select k.key, k.subkey, k.description,
            v.value, v.value_error_low, v.value_error_high,
            v.comment,
            ifnull(k.data_format, 's') output_format
       from per_cluster_keys v
       join keys k on k.key = v.key
-                 and ifnull(k.key_class, 'null') = ifnull(v.key_class, 'null')
+                 and ifnull(k.subkey, 'null') = ifnull(v.subkey, 'null')
      where v.uid = %s""" % uid):
          par = {'name': key['key'],
                 'desc': key['description'],

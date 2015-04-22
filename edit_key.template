@@ -12,8 +12,8 @@
     {% if mode != 'edit' %}
     <script language="javascript">
     function modifyKeyClass(){
-        //alert('Modify key class'+$('#key_class_list').val());
-        $.post("get_key_description?key="+$("#key_selector").val()+"&key_class="+$('#key_class_list').val(),function(response){
+        //alert('Modify key class'+$('#subkey_list').val());
+        $.post("get_key_description?key="+$("#key_selector").val()+"&subkey="+$('#subkey_list').val(),function(response){
              var values = response.split(',');
              $("#description").text(values[0]);
              $("#key_format").text(values[1]);
@@ -22,12 +22,12 @@
 
     function modifyKey(){
         //alert('Modify key');
-        $.post("get_key_class_list?key="+$("#key_selector").val(),function(response){
+        $.post("get_subkey_list?key="+$("#key_selector").val(),function(response){
             var values = response.split(',');
-            select_class = document.getElementById('key_class_list');
+            select_class = document.getElementById('subkey_list');
             select_class.onchange = null;
-            refillSelect('#key_class_list', values);
-            select_class = document.getElementById('key_class_list');
+            refillSelect('#subkey_list', values);
+            select_class = document.getElementById('subkey_list');
             select_class.onchange = modifyKeyClass;
             select_class.selectedIndex = 0;
             modifyKeyClass()
@@ -52,8 +52,8 @@
           {% if mode == 'edit' %}
               <label for="key">key: </label>
               <input type="text" name="key" value="{{key}}" readonly/><br>
-              <label for="key_class">key_class: </label>
-              <input type="text" name="key_class" value="{{key_class}}" readonly/><br>
+              <label for="subkey">subkey: </label>
+              <input type="text" name="subkey" value="{{subkey}}" readonly/><br>
             <div>Description: {{description}}</div>
             <div>Format: {{format}}</div>
           {% else %}
@@ -67,8 +67,8 @@
                     {% endif %}
                   {% endfor %}
               </select>
-              <label for="key_class">key_class: </label>
-              <select name="key_class" id="key_class_list"></select>
+              <label for="subkey">subkey: </label>
+              <select name="subkey" id="subkey_list"></select>
               <div>Description: </div><div id="description"></div>
               <div>Format: </div><div id="key_format"></div>
           {% endif %}

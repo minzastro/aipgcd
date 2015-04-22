@@ -48,18 +48,18 @@ def nullify(value):
         return value
 
 def get_key_list(conn):
-    keys = conn.execute("select distinct key || ',' || ifnull(key_class, 'none') from keys")
+    keys = conn.execute("select distinct key || ',' || ifnull(subkey, 'none') from keys")
     return [item[0] for item in keys.fetchall()]
 
-def get_key_class_list(key):
-    keys = get_conn().execute("select distinct key_class from keys where key = '%s'" % key)
+def get_subkey_list(key):
+    keys = get_conn().execute("select distinct subkey from keys where key = '%s'" % key)
     return [str(item[0]) for item in keys.fetchall()]
 
-def get_key_description(key, key_class):
+def get_key_description(key, subkey):
     keys = get_conn().execute("""select description, data_format
                                    from keys
                                   where key = '%s'
-                                    and %s""" % (key, null_condition('key_class', key_class)))
+                                    and %s""" % (key, null_condition('subkey', subkey)))
     return keys.fetchone()
 
 def get_table_columns(table):
