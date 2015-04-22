@@ -88,6 +88,8 @@ def get_brief_columns(table, masks, negate=True):
 def format_value(value, xformat):
     if xformat is None:
         return str(value)
+    elif value is None:
+        return ''
     else:
         if xformat[-1] in 'gef':
             return ('%%%s' % xformat) % float(value)
