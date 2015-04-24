@@ -5,7 +5,7 @@ Created on Mon Dec  8 15:51:22 2014
 """
 from prettiesttable import from_db_cursor, PrettiestTable
 from globals import get_conn, JINJA, get_brief_columns, format_value
-
+from urllib import urlencode
 
 def single_cluster_update_comment(uid, comment):
     """
@@ -98,6 +98,52 @@ def single_cluster(uid):
     html_data['dec'] = '%.6f' % html_data['dec']
     html_data['params'] = []
     html_data['tables'] = []
+    for key in CONN.cursor().execute("""
+    select k.key, k.subkey, k.description,
+           v.value, v.value_error_low, v.value_error_high,
+           v.comment,
+           ifnull(k.data_format, 's') output_format
+      from per_cluster_keys v
+      join keys k on k.key = v.key
+                 and ifnull(k.subkey, 'null') = ifnull(v.subkey, 'null')
+     where v.uid = %s""" % uid):
+         par = {'name': key['key'],
+                'desc': key['description'],
+                'value': format_value(key['value'], key['output_format']),
+                'source': 'User defined'}
+         html_data['params'].append(par)
+
+    mocs = []
+    for row in CONN.execute("""select m.moc_name,
+                                      coalesce(m.description, m.moc_name) as description,
+                                      m.vizier_catalog
+                               from cluster_in_moc c
+                            join mocs m on c.moc_name = m.moc_name
+                           where uid = %s
+                           union
+                           select mm.moc_name, mm.description, mm.vizier_catalog
+                             from mocs mm where mm.is_full_sky
+                             """ % uid).fetchall():
+        moc = {'moc': row[0],
+               'description': row[1],
+               'link': ''}
+        if row[2] is not None:
+            url_data = {'-source': row[2],
+                        '-out.max': 'unlimited',
+                        '-out.form': 'HTML Table',
+                        '-out.add': '_r,_RAJ,_DEJ',
+                        '-sort': '_r',
+                        '-oc.form': 'dec',
+                        '-c': '%s%s' % (html_data['ra'], html_data['dec']),
+                        '-c.eq': 'J2000',
+                        '-c.r': 2,
+                        '-c.u': 'arcmin',
+                        '-c.geom': 'r'}
+            link = 'http://vizier.u-strasbg.fr/viz-bin/VizieR-4?%s' % urlencode(url_data)
+            moc['link'] = '<a href="%s">Vizier data</a>' % link
+        mocs.append(moc)
+    print mocs
+    html_data['mocs'] = mocs
     for row in cur.execute("""select rt.table_name,
                                      rt.uid_column,
                                      rt.extra_column, rt.description,
@@ -154,20 +200,4 @@ def single_cluster(uid):
                 'html': t1.get_html_string(attributes={'border': 1,
                                                        'id': row['table_name']})})
             html_data['params'].extend(select_cluster_key(uid, row, CONN))
-
-    for key in CONN.cursor().execute("""
-    select k.key, k.subkey, k.description,
-           v.value, v.value_error_low, v.value_error_high,
-           v.comment,
-           ifnull(k.data_format, 's') output_format
-      from per_cluster_keys v
-      join keys k on k.key = v.key
-                 and ifnull(k.subkey, 'null') = ifnull(v.subkey, 'null')
-     where v.uid = %s""" % uid):
-         par = {'name': key['key'],
-                'desc': key['description'],
-                'value': format_value(key['value'], key['output_format']),
-                'source': 'User defined'}
-         html_data['params'].append(par)
-    html_data['params'].sort(key=lambda x: x['name'])
     return t.render(html_data)

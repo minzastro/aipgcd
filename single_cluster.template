@@ -74,7 +74,7 @@
   </select>
 </p>
 <p>Observation status
-  <select id="obs_flag" onchange="obs_flag_change()">
+  <select id="obs_flag" onchange="obs_flag_change() ">
       <option value='0'>0: No data</option>
       <option value='1'>1: In a large survey</option>
       <option value='2'>2: Dedicated photometry</option>
@@ -85,9 +85,25 @@
 
 <div><a target="_blank" href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={{ra}}d{{dec}}d&CooFrame=ICRS&CooEpoch=2000">SIMBAD search</a></div>
 
-<input type='button' onclick='samp_table("key_values", true)' value='Send keys to SAMP'/>
+<div><h3>Catalog coverage:</h3>
+<table id="mocs" border='1'>
+    <thead>
+        <tr>
+            <td>Catalog</td>
+            <td>Link</td>
+        </tr>
+    </thead>
+    {%for moc in mocs%}
+    <tr>
+        <td>{{moc.description}}</td>
+        <td>{{moc.link}}</td>
+    </tr>
+    {%endfor%}
+</table>
+</div>
+
 <table id="key_values" class="compact hover" width=500 columns='SSSSSS'>
-    <caption>Main parameters</caption>
+    <caption>Main parameters <input type='button' onclick='samp_table("key_values", true)' value='Send to SAMP'/></caption>
     <thead>
         <tr>
             <th>Parameter</th>
