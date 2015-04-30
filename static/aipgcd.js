@@ -11,8 +11,8 @@ function setSelectByValue(id, value) {
 
 
 //Fill dropdown box with an array of values
-function refillSelect(id, values){
-    var select_class = $(id);
+function refillSelect(select, values){
+    var select_class = $(select);
     select_class.empty();
     if (values.length > 0){
         for (var i = 0; i < values.length; i++){

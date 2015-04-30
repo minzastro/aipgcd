@@ -51,7 +51,7 @@ def nullify(value):
     else:
         return value
 
-def get_key_list(conn):
+def get_key_list(conn, any_subkey=False):
     keys = conn.execute("select key, subkey from keys").fetchall()
     result = []
     for key, subkey in keys:
@@ -59,6 +59,9 @@ def get_key_list(conn):
             result.append(key)
         else:
             result.append('%s,%s' % (key, subkey))
+    if any_subkey:
+        for xkey in conn.execute("select distinct key from keys").fetchall():
+            result.append('%s,all subkeys' % xkey)
     return result
 
 def get_subkey_list(key):

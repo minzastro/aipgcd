@@ -114,6 +114,7 @@ class HelloWorld(object):
 
     @cherrypy.expose
     def vo_cone_search(self, **params):
+        print params
         return vo_cone_search(params)
 
     @cherrypy.expose

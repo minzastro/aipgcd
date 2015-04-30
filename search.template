@@ -8,6 +8,7 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <link rel=stylesheet href='/static/navigation_bar.css' type='text/css'>
     <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/search_form.js"></script>
     <script type="text/javascript" charset="utf8" language="javascript">
         function onFilter(filter){
                 if ($("#"+filter+"_filter_cb").is(':checked')){
@@ -18,11 +19,17 @@
                 }
             }
 
+        function switchVOcone(flag){
+            if (flag){
+                $('#vocone').show();
+            } else {
+                $('#vocone').hide();
+            }
+            document.getElementById("fullsky").checked = !flag;
+        }
+
         $(document).ready(function(){
-            onFilter('key');
-            onFilter('table');
-            $("#table_filter_cb").click(function(){ onFilter('table') });
-            $("#key_filter_cb").click(function(){ onFilter('key') });
+            switchVOcone(false);
         });
 
     </script>
@@ -46,9 +53,14 @@
         </form>
 
         <h2>This is a full-power search</h2>
+        <input type='button' value="Add VO cone constraint"
+                onclick="switchVOcone(true)"/>
+        <input type='button' value="Add catalog constraint"
+                onclick="getTableDiv('tables', [{{table_x}}])"/>
+        <input type='button' value="Add key constraint"
+                onclick="getKeyDiv('keys', [{{key_x}}])"/>
         <form method="post" action="../vo_cone_search">
-            <label for="fullsky">Full sky search</label>
-            <input type="checkbox" name="fullsky" />
+            <input type="checkbox" name="fullsky" id="fullsky" style="visibility: hidden"/>
             <fieldset id="vocone">
               <legend>VO cone:</legend>
               <label for="ra">RA (degrees): </label>
@@ -57,38 +69,13 @@
               <input type="text" value="" name="decl" />
               <label for="radius">Search radius (arcmin): </label>
               <input type="text" value="" name="radius" />
+              <input type="button" value="X" name="hide" onclick="switchVOcone(false)"/>
             </fieldset>
-            <fieldset>
+            <fieldset id='tables'>
               <legend>Table selection</legend>
-              <label for="table">Filter by table: </label>
-              <input id="table_filter_cb" type="checkbox" name="table">
-              <div id="table_filter">
-                <select name="has_record">
-                  <option value="exists">included</option>
-                  <option value="not exists">not included</option>
-                </select> in
-                <select name="in_table">
-                  {% for table in table_list %}
-                     <option value={{table}} selected>{{table}}</option>
-                  {% endfor %}
-                </select>
-              </div>
             </fieldset>
-            <fieldset>
+            <fieldset id='keys'>
                 <legend>Key selection</legend>
-                <label for="key">Filter by key: </label>
-                <input id="key_filter_cb" type="checkbox" name="key">
-                <div id="key_filter">
-                  <select name="has_key">
-                    <option value="exists">has</option>
-                    <option value="not exists">has not</option>
-                  </select> in
-                  <select name="key_list">
-                    {% for key in key_list %}
-                       <option value={{key}} selected>{{key}}</option>
-                    {% endfor %}
-                  </select>
-              </div>
             </fieldset>
             <div><button type="submit">Search</button></div>
         </form>
