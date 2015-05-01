@@ -4,12 +4,15 @@
 
 <link rel=stylesheet href='static/style.css' type='text/css'>
 <link rel=stylesheet href='static/jquery-ui.theme.css' type='text/css'>
+<link rel="stylesheet" type="text/css" href="/static/DataTables/media/css/jquery.dataTables.css">
 <link rel=stylesheet href='static/navigation_bar.css' type='text/css'>
 <head>
     <title>AIP cluster database: Key editor</title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
-    <script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.dataTables.js"></script>
+    <!--<script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>-->
     <script type="text/javascript" charset="utf8" src="/static/jquery-ui.js"></script>
     <script type="text/javascript" charset="utf8" language="javascript">
         function setSelectByValue(id, value) {
@@ -23,24 +26,36 @@
         }
 
         $(document).ready(function(){
+            $('#key_list').DataTable({
+                ordering: true,
+                autoWidth: false,
+                paging: false,
+                "columns": [
+                { "width": "50px" },
+                { "width": "50px" },
+                { "width": "250px" },
+                { "width": "50px" }]
+            });
+
             $("#dialog").dialog({
                    autoOpen: false,
                    resizable: false,
                    minHeight: false
                });
 
-            $("#key_list td").click(function() {
-                var row_num = parseInt( $(this).parent().index() )+1;
-                var cell = $('#key_list tr:nth-child('+row_num+') td:nth-child(1)');
-                $("#dialog select[name='key_name']").val(cell.html());
-                var cell = $('#key_list tr:nth-child('+row_num+') td:nth-child(2)');
-                $("#dialog input[name='key_class']").val(cell.html());
-                var cell = $('#key_list tr:nth-child('+row_num+') td:nth-child(3)');
-                $("#dialog input[name='description']").val(cell.html());
-                var cell = $('#key_list tr:nth-child('+row_num+') td:nth-child(4)');
-                $("#dialog input[name='output_format']").val(cell.html());
-                $('#dialog').dialog('option', 'title', $('#key_list tr:nth-child('+row_num+') td:nth-child(1)').html());
-                $('#dialog').dialog('open');
+            $("#key_list tbody").on( 'click', 'tr', function (e){
+                if (e.ctrlKey){
+                    $(this).toggleClass('selected');
+                }
+                else {
+                    var row_data = $(this).children('td');
+                    $("#dialog select[name='key_name']").val(row_data[0].innerText);
+                    $("#dialog input[name='subkey']").val(row_data[1].innerText);
+                    $("#dialog input[name='description']").val(row_data[2].innerText);
+                    $("#dialog input[name='output_format']").val(row_data[3].innerText);
+                    $('#dialog').dialog('option', 'title', row_data[0].innerText);
+                    $('#dialog').dialog('open');
+                }
             });
 
             $('#new_key').click(function(){
@@ -57,12 +72,14 @@
                     xkey = frm.querySelector('[name=new_key_name]').value;
                 }
                 $.post('key_list_update', {key: xkey,
-                                           key_class: frm.querySelector('#key_class').value,
-                                           description: frm.querySelector('#description').value,
-                                           format: frm.querySelector('[name=output_format]').value,
-                                          });
-                $('#dialog').dialog('close');
-                window.location.reload();
+                                              subkey: frm.querySelector('#subkey').value,
+                                              description: frm.querySelector('#description').value,
+                                              format: frm.querySelector('[name=output_format]').value,
+                                             },
+                                             function(response){
+                                                $('#dialog').dialog('close');
+                                                window.location.reload();
+                                            });
             });
         });
     </script>
@@ -73,8 +90,9 @@
 {% include "/static/navigation_bar.html"  %}
 <input type="button" id="new_key" value="Add new key"/>
 <p>Or click on row to edit...</p>
+<div id="key_list_div" style="width: 600px">
 {{ key_list }}
-
+</div>
     <div id="dialog" title="Edit key" id="edit_key">
         <div>
             <input type='radio' name='key' value='select_from' checked>
@@ -90,8 +108,8 @@
             <label for="new_key_name">New key: </label>
             <input type='text' name="new_key_name" value=''/>
         </div>
-        <label for="key_class">Key class: </label>
-        <input type='text' name="key_class" id="key_class" value=''></input>
+        <label for="subkey">Subkey: </label>
+        <input type='text' name="subkey" id="subkey" value=''></input>
         <label for="description">Description: </label>
         <input type='text' name="description" id="description" value=''></input>
         <label for="output_format">Output format: </label>

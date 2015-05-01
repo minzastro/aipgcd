@@ -5,8 +5,12 @@ Created on Mon Dec  8 15:51:22 2014
 """
 from prettiesttable import from_db_cursor, PrettiestTable
 from globals import get_conn, JINJA, get_brief_columns, format_value
+from urllib import urlencode
 
 def single_cluster_update_comment(uid, comment):
+    """
+    Updates comment for a cluster.
+    """
     CONN = get_conn()
     xcomment = comment.replace("'", "''")
     CONN.execute("update clusters set comment = '%s' where uid = %s" % (
@@ -14,27 +18,43 @@ def single_cluster_update_comment(uid, comment):
     CONN.commit()
     return None
 
+
 def single_cluster_update_xid(uid, xid):
+    """
+    Updates detection status for a cluster.
+    """
     CONN = get_conn()
     CONN.execute("update clusters set xidflag = %s where uid = %s" % (
         xid, uid))
     CONN.commit()
     return None
 
+
+def single_cluster_update_obs_flag(uid, obs_flag):
+    """
+    Updates obs_flag for a cluster.
+    """
+    CONN = get_conn()
+    CONN.execute("update clusters set obs_flag = %s where uid = %s" % (
+        obs_flag, uid))
+    CONN.commit()
+    return None
+
+
 def select_cluster_key(uid, table_data, conn):
     params = []
     for key in conn.cursor().execute("""
         select kr.reference_column, kr.is_string,
                kr.error_column_low, kr.error_column_high, kr.comment_column,
-               k.key, k.key_class, k.description,
+               k.key, k.subkey, k.description,
                ifnull(k.data_format, rc.output_format) as output_format
           from reference_tables_keys kr
           join keys k on k.key = kr.key
-                     and ifnull(k.key_class, 'null') = ifnull(kr.key_class, 'null')
+                     and ifnull(k.subkey, 'null') = ifnull(kr.subkey, 'null')
           join reference_tables_columns rc on kr.reference_table = rc.reference_table
                                           and kr.reference_column = rc.column_name
          where kr.reference_table = '%s'
-      order by k.key, k.key_class""" % table_data['table_name']):
+      order by k.key, k.subkey""" % table_data['table_name']):
         select = 'x.[%s] as reference_column' % key['reference_column']
         for extra in ['error_column_low', 'error_column_high',
                       'comment_column']:
@@ -69,14 +89,63 @@ def single_cluster(uid):
     CONN = get_conn(dict_row=True)
     cur = CONN.cursor()
     html_data = {}
-    result = CONN.execute("select source, source_id, comment, xidflag, ra, dec"
+    result = CONN.execute("select source, source_id, comment, xidflag, "
+                          "ra, dec, obs_flag"
                           " from clusters where uid = %s" % uid).fetchone()
     html_data = dict(result)
     html_data['uid'] = uid
+    html_data['ra'] = '%.6f' % html_data['ra']
+    html_data['dec'] = '%.6f' % html_data['dec']
     html_data['params'] = []
     html_data['tables'] = []
+    for key in CONN.cursor().execute("""
+    select k.key, k.subkey, k.description,
+           v.value, v.value_error_low, v.value_error_high,
+           v.comment,
+           ifnull(k.data_format, 's') output_format
+      from per_cluster_keys v
+      join keys k on k.key = v.key
+                 and ifnull(k.subkey, 'null') = ifnull(v.subkey, 'null')
+     where v.uid = %s""" % uid):
+         par = {'name': key['key'],
+                'desc': key['description'],
+                'value': format_value(key['value'], key['output_format']),
+                'source': 'User defined'}
+         html_data['params'].append(par)
+
+    mocs = []
+    for row in CONN.execute("""select m.moc_name,
+                                      coalesce(m.description, m.moc_name) as description,
+                                      m.vizier_catalog
+                               from cluster_in_moc c
+                            join mocs m on c.moc_name = m.moc_name
+                           where uid = %s
+                           union
+                           select mm.moc_name, mm.description, mm.vizier_catalog
+                             from mocs mm where mm.is_full_sky
+                             """ % uid).fetchall():
+        moc = {'moc': row[0],
+               'description': row[1],
+               'link': ''}
+        if row[2] is not None:
+            url_data = {'-source': row[2],
+                        '-out.max': 'unlimited',
+                        '-out.form': 'HTML Table',
+                        '-out.add': '_r,_RAJ,_DEJ',
+                        '-sort': '_r',
+                        '-oc.form': 'dec',
+                        '-c': '%s%s' % (html_data['ra'], html_data['dec']),
+                        '-c.eq': 'J2000',
+                        '-c.r': 2,
+                        '-c.u': 'arcmin',
+                        '-c.geom': 'r'}
+            link = 'http://vizier.u-strasbg.fr/viz-bin/VizieR-4?%s' % urlencode(url_data)
+            moc['link'] = '<a href="%s">Vizier data</a>' % link
+        mocs.append(moc)
+    print mocs
+    html_data['mocs'] = mocs
     for row in cur.execute("""select rt.table_name,
-                                     rt.uid_column, rt.is_string_uid,
+                                     rt.uid_column,
                                      rt.extra_column, rt.description,
                                      rt.brief_columns
                                 from reference_tables rt
@@ -131,20 +200,4 @@ def single_cluster(uid):
                 'html': t1.get_html_string(attributes={'border': 1,
                                                        'id': row['table_name']})})
             html_data['params'].extend(select_cluster_key(uid, row, CONN))
-
-    for key in CONN.cursor().execute("""
-    select k.key, k.key_class, k.description,
-           v.value, v.value_error_low, v.value_error_high,
-           v.comment,
-           ifnull(k.data_format, 's') output_format
-      from per_cluster_keys v
-      join keys k on k.key = v.key
-                 and ifnull(k.key_class, 'null') = ifnull(v.key_class, 'null')
-     where v.uid = %s""" % uid):
-         par = {'name': key['key'],
-                'desc': key['description'],
-                'value': format_value(key['value'], key['output_format']),
-                'source': 'User defined'}
-         html_data['params'].append(par)
-    html_data['params'].sort(key=lambda x: x['name'])
     return t.render(html_data)

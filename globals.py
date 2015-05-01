@@ -5,15 +5,23 @@ Created on Mon Dec 15 21:00:29 2014
 @author: minz
 """
 
-#import sqlite3
 from pysqlite2 import dbapi2 as sqlite3
-from jinja2 import Environment, PackageLoader, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 import os
+import sqllist
+sqllist.load_defaults()
+
+if os.path.dirname(__file__).startswith('/srv'):
+    DB_LOCATION = '/srv/db/cluster-db/'
+else:
+    DB_LOCATION = ''
+
 
 JINJA = Environment(loader=FileSystemLoader('.'))
 
+
 def get_conn(dict_row=False):
-    conn = sqlite3.connect('AIP_clusters.sqlite')
+    conn = sqlite3.connect('%sAIP_clusters.sqlite' % DB_LOCATION)
     conn.enable_load_extension(True)
     conn.execute("select load_extension('%s/sqlite_extentions/libsqlitefunctions.so')" % os.path.dirname(__file__))
     conn.enable_load_extension(False)
@@ -43,19 +51,28 @@ def nullify(value):
     else:
         return value
 
-def get_key_list(conn):
-    keys = conn.execute("select distinct key || ',' || ifnull(key_class, 'none') from keys")
-    return [item[0] for item in keys.fetchall()]
+def get_key_list(conn, any_subkey=False):
+    keys = conn.execute("select key, subkey from keys").fetchall()
+    result = []
+    for key, subkey in keys:
+        if subkey is None:
+            result.append(key)
+        else:
+            result.append('%s,%s' % (key, subkey))
+    if any_subkey:
+        for xkey in conn.execute("select distinct key from keys").fetchall():
+            result.append('%s,all subkeys' % xkey)
+    return result
 
-def get_key_class_list(key):
-    keys = get_conn().execute("select distinct key_class from keys where key = '%s'" % key)
+def get_subkey_list(key):
+    keys = get_conn().execute("select distinct subkey from keys where key = '%s'" % key)
     return [str(item[0]) for item in keys.fetchall()]
 
-def get_key_description(key, key_class):
+def get_key_description(key, subkey):
     keys = get_conn().execute("""select description, data_format
                                    from keys
                                   where key = '%s'
-                                    and %s""" % (key, null_condition('key_class', key_class)))
+                                    and %s""" % (key, null_condition('subkey', subkey)))
     return keys.fetchone()
 
 def get_table_columns(table):
@@ -84,6 +101,8 @@ def get_brief_columns(table, masks, negate=True):
 def format_value(value, xformat):
     if xformat is None:
         return str(value)
+    elif value is None:
+        return ''
     else:
         if xformat[-1] in 'gef':
             return ('%%%s' % xformat) % float(value)

@@ -1,0 +1,2 @@
+This is an output cache.
+cleanup_cache.py will remove all files older than 1h from this folder.

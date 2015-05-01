@@ -8,23 +8,29 @@ import sys
 from os import path
 NAME = '%s/..' % path.dirname(__file__)
 sys.path.insert(0, path.abspath(path.dirname(__file__)))
-print sys.path
 
 import cherrypy
+from cherrypy.lib.static import serve_file
 from single_cluster import single_cluster, \
-                                        single_cluster_update_comment, \
-                                        single_cluster_update_xid
+                           single_cluster_update_comment, \
+                           single_cluster_update_xid, \
+                           single_cluster_update_obs_flag
 from edit_tables import edit_tables
 from edit_table import edit_table, edit_table_update, \
-                                    list_table, \
-                                    edit_table_key_delete, edit_table_key_update, \
-                                    edit_table_update_column
+                       list_table, \
+                       edit_table_key_delete, edit_table_key_update, \
+                       edit_table_update_column
 from key_list import key_list, key_list_update
 from vo_cone_search import vo_cone_search
 from search import search
-#from samp import get_samp_table
-from globals import get_key_class_list, get_key_description, \
-                                 get_table_columns
+from samp import data_to_votable
+from globals import get_subkey_list, get_key_description, \
+                    get_table_columns
+
+if path.dirname(__file__).startswith('/srv'):
+    AIPGCD_URL = 'archie.aip.de'
+else:
+    AIPGCD_URL = '127.0.0.1:8444'
 
 
 def error_page_404(status, message, traceback, version):
@@ -37,10 +43,6 @@ class HelloWorld(object):
     def index(self):
         return search()
 
-    #@cherrypy.expose
-    #def get_samp_table(self, **params):
-#        return get_samp_table(params)
-
     @cherrypy.expose
     def single(self, uid=60036):
         return single_cluster(uid)
@@ -52,6 +54,10 @@ class HelloWorld(object):
     @cherrypy.expose
     def single_cluster_update_xid(self, uid, xid):
         return single_cluster_update_xid(uid, xid)
+
+    @cherrypy.expose
+    def single_cluster_update_obs_flag(self, uid, obs_flag):
+        return single_cluster_update_obs_flag(uid, obs_flag)
 
     @cherrypy.expose
     def edit_tables(self):
@@ -72,8 +78,8 @@ class HelloWorld(object):
         return key_list()
 
     @cherrypy.expose
-    def key_list_update(self, key, key_class, description, format):
-        return key_list_update(key, key_class, description, format)
+    def key_list_update(self, key, subkey, description, format):
+        return key_list_update(key, subkey, description, format)
 
     @cherrypy.expose
     def edit_table_key_delete(self, table, uid):
@@ -85,18 +91,18 @@ class HelloWorld(object):
                               reference_column, error_column_low,
                               error_column_high, comment):
         edit_table_key_update(table, mode, uid, key,
-                                     reference_column, error_column_low,
-                                     error_column_high, comment)
+                              reference_column, error_column_low,
+                              error_column_high, comment)
         raise cherrypy.InternalRedirect('edit_table?table=%s' % str(table))
 
     @cherrypy.expose
-    def get_key_class_list(self, key):
-        return ','.join(get_key_class_list(key))
+    def get_subkey_list(self, key):
+        return ','.join(get_subkey_list(key))
 
     @cherrypy.expose
     def get_key_description(self, key):
-        key, key_class = key.split(',')
-        return ','.join(map(str, get_key_description(key, key_class)))
+        key, subkey = key.split(',')
+        return ','.join(map(str, get_key_description(key, subkey)))
 
     @cherrypy.expose
     def get_table_columns(self, table):
@@ -114,6 +120,14 @@ class HelloWorld(object):
     @cherrypy.expose
     def edit_table_update(self, table, description, uid_column, brief_columns):
         return edit_table_update(table, description, uid_column, brief_columns)
+
+    @cherrypy.expose
+    def get_samp_table(self, **params):
+        result = data_to_votable(params['coltypes'],
+                                 params['header[]'],
+                                 params['data[]'])
+        return 'http://%s/static/output_cache/%s' % (AIPGCD_URL,
+                                                     path.basename(result))
 
 if __name__ == '__main__':
     cherrypy.quickstart(HelloWorld(), config="aipgcd.conf")

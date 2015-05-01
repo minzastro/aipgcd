@@ -58,7 +58,7 @@
           <input type="hidden" name="mode" value="{{mode}}" />
           {% if mode == 'edit' %}
               <label for="key">Key: </label>
-              <input type="text" name="key" id="key_selector" value="{{key}},{{key_class}}" readonly/><br>
+              <input type="text" name="key" id="key_selector" value="{{key}},{{subkey}}" readonly/><br>
             <div>Description: {{description}}</div>
             <div>Format: {{format}}</div>
           {% else %}
