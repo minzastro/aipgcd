@@ -65,8 +65,10 @@ function tableToArray(id){
 }
 
 function samp_table(id, use_samp){
+    // Create table and send it to SAMP or download.
     var dataarr = tableToArray(id);
     coltypes = $('#'+id).attr('columns');
+    // Get table:
     $.ajax({type: 'POST',
             url: 'get_samp_table',
             data: {'samp': use_samp,
@@ -76,6 +78,7 @@ function samp_table(id, use_samp){
             traditional: true,
             success: function(response, status, xhr){
                  if (use_samp) {
+                     // Send to SAMP
                      var connector = new samp.Connector("Sender");
                      var send = function(connection){
                          var msg = new samp.Message("table.load.votable", {"url": response});
@@ -84,10 +87,10 @@ function samp_table(id, use_samp){
                      connector.runWithConnection(send);
                  }
                  else{
+                    // Download file
                     var afilename = response.split('/');
                     var filename = afilename[afilename.length - 1];
                     var blob = new Blob([response], { type: "application/x-download" });
-                    //var URL = window.URL || window.webkitURL;
                     var downloadUrl = response; //URL.createObjectURL(blob);
                     var a = document.createElement("a");
                     // safari doesn't support this yet
@@ -99,8 +102,6 @@ function samp_table(id, use_samp){
                          document.body.appendChild(a);
                          a.click();
                     }
-                    //window.location = downloadUrl;
                  }
              }});
-
 }
