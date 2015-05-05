@@ -94,5 +94,22 @@ function getKeyDiv(condition_list, key_list){
   expression.setAttribute('name', 'expression');
   di.appendChild(expression);
   createDeletionButton(di);
+  showHideFields(select);
   document.getElementById(condition_list).appendChild(di);
+}
+
+function getMOCDiv(moc_list, moc_names, moc_descr){
+  var di = document.createElement('div');
+  // MOC constraint:
+  var select = document.createElement('select');
+  select.setAttribute('name', 'has_moc');
+  fillSelect(select, ['exists', 'not exists'], ['overlap', 'no overlap']);
+  di.appendChild(select);
+  // List of MOCs:
+  var smoc_list = document.createElement('select');
+  smoc_list.setAttribute('name', 'in_moc');
+  fillSelect(smoc_list, moc_names, moc_descr);
+  di.appendChild(smoc_list);
+  createDeletionButton(di);
+  document.getElementById(moc_list).appendChild(di);
 }

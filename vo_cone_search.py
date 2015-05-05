@@ -97,7 +97,16 @@ def vo_cone_search(args):
                 conditions.append(build_key_constraint(conn, key, subkey_cond,
                                                        expr))
                 extra_counter = extra_counter + 1
-
+    if 'has_moc' in args:
+        for valid in ['has_moc', 'in_moc']:
+            if isinstance(args[valid], basestring):
+                args[valid] = [args[valid]]
+        for cond, moc in zip(args['has_moc'], args['in_moc']):
+            conditions.append(""" and %s (select 1
+                                            from cluster_in_moc m
+                                           where m.uid = c.uid
+                                             and m.moc_name = '%s')
+                                             """ % (cond, moc))
     t = JINJA.get_template('vo_cone_search.template')
 
     sql = """select c.uid, ra, dec, c.source, source_id,
