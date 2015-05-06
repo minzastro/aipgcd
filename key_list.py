@@ -30,12 +30,13 @@ def key_list_update(key, subkey, description, format):
                                from keys
                               where key = '%s'
                                 and %s""" % (key, subkey_cond)).fetchone()[0]
+    print subkey_cond
     if check > 0:
         conn.execute(u"""update keys
                             set description = '%s',
                                 data_format = '%s'
                               where key = '%s'
-                                and %s'""" % (description, format,
+                                and %s""" % (description, format,
                                               key, subkey_cond))
     else:
         conn.execute(u"""

@@ -53,6 +53,10 @@ def vo_cone_search(args):
         conditions.append("""
         and haversine(c.ra, c.dec, {0}, {1}) < {2}./60.""".format(ra, decl,
                                                               radius))
+        extra_columns = """ haversine(c.ra, c.dec, {0}, {1})
+                            as "_r (arcmin)", """.format(ra, decl, radius)
+    else:
+        extra_columns = ''
     if 'in_table' in args:
         if isinstance(args['in_table'], basestring):
             conditions.append("""and %s (select 1
@@ -109,16 +113,18 @@ def vo_cone_search(args):
                                              """ % (cond, moc))
     t = JINJA.get_template('vo_cone_search.template')
 
-    sql = """select c.uid, ra, dec, c.source, source_id,
+    sql = """select c.uid, %s ra, dec, c.source, source_id, xidflag, obs_flag,
                     group_concat(distinct r.reference_table) as Tables
                from clusters c
                join data_references r on r.cluster_uid = c.uid
               where 1=1
                 %s
               group by c.uid, ra, dec, c.source, source_id
-              order by c.ra""" % ' '.join(conditions)
+              order by c.ra""" % (extra_columns, ' '.join(conditions))
     print sql
     t1 = from_db_cursor(conn.execute(sql))
+    t1.float_format['ra'] = '.5f'
+    t1.float_format['dec'] = '.5f'
     html_data = {'table': t1.get_html_string(attributes={'border': 1,
                                                          'id': 'search',
                                                          'columns': 'IFFSIS'},

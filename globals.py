@@ -99,7 +99,7 @@ def get_brief_columns(table, masks, negate=True):
     return result
 
 def format_value(value, xformat):
-    if xformat is None:
+    if xformat is None or xformat == '':
         return str(value)
     elif value is None:
         return ''

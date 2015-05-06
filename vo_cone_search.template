@@ -1,42 +1,51 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<link rel="stylesheet" type="text/css" href="/static/DataTables/media/css/jquery.dataTables.css">
 
 <!--<link rel=stylesheet href='style.css' type='text/css'>-->
 <head>
     <title>AIP cluster database: VO cone search</title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.dataTables.js"></script>
     <script type="text/javascript" charset="utf8" src="/static/aipgcd.js"></script>
     <script type="text/javascript" charset="utf8" src="/static/samp.js"></script>
     <script type="text/javascript" language="javascript" class="init">
-    window.onload = addRowHandlers;
-    function addRowHandlers() {
-        var table = document.getElementById("search");
-        var rows = table.getElementsByTagName("tr");
-        for (i = 1; i < rows.length; i++) {
-            var currentRow = table.rows[i];
-            var createClickHandler =
-                function(row)
-                {
-                    return function() {
-                                            var cell = row.getElementsByTagName("td")[0];
-                                            var id = cell.innerHTML;
-                                            window.location = "single?uid=" + id;
-                                     };
-                }
-            currentRow.onclick = createClickHandler(currentRow);
-        }
-    }
+        function addRowHandlers() {
+            var table = document.getElementById("search");
+            var rows = table.getElementsByTagName("tr");
+            for (i = 1; i < rows.length; i++) {
+                var currentRow = table.rows[i];
+                var createClickHandler =
+                    function(row)
+                    {
+                        return function() {
+                                                var cell = row.getElementsByTagName("td")[0];
+                                                var id = cell.innerHTML;
+                                                window.location = "single?uid=" + id;
+                                         };
+                    }
+                currentRow.onclick = createClickHandler(currentRow);
+            }
+        };
+        $(window).load(function(){
+            $('#search').DataTable({
+                ordering: true,
+                autoWidth: false,
+                paging: false
+            });
+            addRowHandlers();
+        });
     </script>
 </head>
 
 <body>
     <a href='index'>Main menu</a>
     <h1>Search results:</h1>
+    <div>Click on the row to be redirected...</div>
     <input type='button' onclick='samp_table("search", true)' value='Send results to SAMP'/>
     <input type='button' onclick='samp_table("search", false)' value='Save results as...'/>
-    <div>Click on the row to be redirected...</div>
     {{table}}
 </body>
 </html>
