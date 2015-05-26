@@ -10,7 +10,7 @@ NAME = '%s/..' % path.dirname(__file__)
 sys.path.insert(0, path.abspath(path.dirname(__file__)))
 
 import cherrypy
-from cherrypy.lib.static import serve_file
+#from cherrypy.lib.static import serve_file
 from single_cluster import single_cluster, \
                            single_cluster_update_comment, \
                            single_cluster_update_xid, \
@@ -20,7 +20,7 @@ from edit_table import edit_table, edit_table_update, \
                        list_table, \
                        edit_table_key_delete, edit_table_key_update, \
                        edit_table_update_column
-from key_list import key_list, key_list_update
+from key_list import key_list, key_list_update, key_list_delete
 from vo_cone_search import vo_cone_search
 from search import search
 from samp import data_to_votable
@@ -80,6 +80,11 @@ class HelloWorld(object):
     @cherrypy.expose
     def key_list_update(self, key, subkey, description, format):
         return key_list_update(key, subkey, description, format)
+
+    @cherrypy.expose
+    def key_list_delete(self, **params):
+        print params
+        return key_list_delete(params.values())
 
     @cherrypy.expose
     def edit_table_key_delete(self, table, uid):

@@ -47,7 +47,7 @@ def edit_table(table):
                                                        'id': 'keys_table'})
     t2 = from_db_cursor(conn.execute("""
       select column_name, data_type, data_unit,
-             output_format, description
+             output_format, description, ucd
         from reference_tables_columns
        where reference_table = '%s'""" % table))
     html_data['columns'] = t2.get_html_string(attributes={'border': 1,

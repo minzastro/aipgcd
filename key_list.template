@@ -81,6 +81,21 @@
                                                 window.location.reload();
                                             });
             });
+
+            $('#delete_key').click(function(){
+                if (confirm('Really delete selected keys?')){
+                    items = []
+                    var data = $("#key_list").DataTable().rows('.selected').data();
+                    alert(data.length);
+                    for (var i = 0; i < data.length; i++ ){
+                        items.push([data[i][0], data[i][1]]);
+                    }
+                    $.post('key_list_delete', {itemlist: items},
+                                             function(response){
+                                                window.location.reload();
+                                             });
+                }
+            });
         });
     </script>
 </head>
@@ -89,6 +104,7 @@
 
 {% include "/static/navigation_bar.html"  %}
 <input type="button" id="new_key" value="Add new key"/>
+<input type="button" id="delete_key" value="Delete selected keys"/>
 <p>Or click on row to edit...</p>
 <div id="key_list_div" style="width: 600px">
 {{ key_list }}

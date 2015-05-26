@@ -45,3 +45,20 @@ def key_list_update(key, subkey, description, format):
         """ % (key, subkey, description, format))
     conn.commit()
     return None
+
+def key_list_delete(itemlist):
+    conn = get_conn()
+    for iitem in xrange(len(itemlist), step=2):
+        item = [itemlist[iitem], itemlist[iitem+1]]
+        if item[1] == '':
+            subkey_cond = 'subkey is null'
+        else:
+            subkey_cond = "subkey = '%s'" % item[1]
+        conn.execute("""delete from keys
+                         where key = '%s'
+                         and %s""" % (item[0], subkey_cond))
+        conn.execute("""delete from reference_tables_keys
+                         where key = '%s'
+                         and %s""" % (item[0], subkey_cond))
+    conn.commit()
+    return None

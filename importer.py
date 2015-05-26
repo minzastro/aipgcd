@@ -35,11 +35,11 @@ def insert_clusters(conn, table_name, uid_column,
     """
     if gal_l is not None and gal_b is not None:
         # We have information on the galactic coordinates in table already.
-        gagal_ls = ', gal_l, gal_b'
+        gal_ls = ', gal_l, gal_b'
         gal_select = ', %s, %s' % (gal_l, gal_b)
         update_gal = False
     else:
-        gagal_ls = ''
+        gal_ls = ''
         gal_select = ''
         update_gal = True
     conn.executescript("""
@@ -53,12 +53,8 @@ select {2}, {3}, '{0}', {1}, cast({3} as int) {5}
 insert into data_references (cluster_uid, reference_table, reference_uid)
 select uid, '{0}', source_id
   from clusters c
- where source = '{0}';""".format(table_name,
-                                                             uid_column,
-                                                             ra_column,
-                                                             dec_column,
-                                                             gagal_ls,
-                                                             gal_select))
+ where source = '{0}';""".format(table_name, uid_column,
+                                 ra_column, dec_column, gal_ls, gal_select))
     data = conn.execute("""select uid, ra, dec from clusters
                             where source = '%s'""" % table_name).fetchall()
     data = np.array(data)
@@ -113,6 +109,44 @@ def create_key(table, key, reference, error_low, error_high, comment,
     comment, comment_column)
     values (%s)""" % ','.join(row))
     conn.commit()
+
+
+def update_flags(flag, table, flag_value=None,
+                 flag_column=None, flag_comment=None, uid_column=None):
+    conn = get_conn()
+    if flag_value is not None:
+        conn.execute("""update clusters
+                           set {flag} = {flag_value}
+                         where source = '{table}';
+                        update clusters
+                           set {flag} = {flag_value}
+                         where source != '{table}'
+                           and exists (select 1
+                                         from data_references d
+                                        where d.cluster_uid = clusters.uid
+                                          and d.reference_table = '{table}')
+                           and {flag} < {flag_value}
+                           """.format(flag=flag, flag_value=flag_value,
+                                      table=table))
+     else:
+         conn.execute("""create table temp_flags(
+                          uid integer null,
+                          old_flag integer,
+                          new_flag integer,
+                          new_flag_comment text)""")
+         conn.execute("""insert into temp_flags(uid, new_flag, new_flag_comment)
+         select d.cluster_uid, %s, %s
+           from [%s] x
+           join data_references d on d.reference_uid = x.%s
+          where d.reference_table = '%s'
+           """ % (flag_column, flag_comment, table, uid_column, table))
+         conn.execute("""
+         update clusters
+            set {flag} = (select new_flag from temp_flags t where t.uid = clusters.uid)
+          where exists (select new_flag from temp_flags t
+                         where t.uid = clusters.uid
+                           and t.new_flag > clusters.{flag})
+         """.format(flag=flag))
 
 
 def create_table(file_name, file_type, table_name, description,

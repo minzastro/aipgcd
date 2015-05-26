@@ -69,6 +69,7 @@ def select_cluster_key(uid, table_data, conn):
                   where r.cluster_uid = {uid}
                     and r.reference_table = '{table_name}'""".format(**ext_row)).fetchall()
         for value in values:
+            print value['reference_column'], key['output_format']
             par = {'name': key['key'],
                    'desc': key['description'],
                    'value': format_value(value['reference_column'], key['output_format']),

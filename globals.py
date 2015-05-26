@@ -99,9 +99,10 @@ def get_brief_columns(table, masks, negate=True):
     return result
 
 def format_value(value, xformat):
+    print value, len(str(value)), type(str(value)), str(value) == 'None'
     if xformat is None or xformat == '':
         return str(value)
-    elif value is None:
+    elif value is None or str(value).strip() == 'None':
         return ''
     else:
         if xformat[-1] in 'gef':
