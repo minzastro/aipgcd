@@ -112,9 +112,13 @@ def create_key(table, key, reference, error_low, error_high, comment,
 
 
 def update_flags(flag, table, flag_value=None,
-                 flag_column=None, flag_comment=None, uid_column=None):
+                 flag_column=None, uid_column=None):
+    """
+    Updating OBS or XID flags with new values.
+    """
     conn = get_conn()
     if flag_value is not None:
+        # Set fixed value, if it is larger than existing.
         conn.execute("""update clusters
                            set {flag} = {flag_value}
                          where source = '{table}';
@@ -129,24 +133,26 @@ def update_flags(flag, table, flag_value=None,
                            """.format(flag=flag, flag_value=flag_value,
                                       table=table))
      else:
+         # Update by value in the table column.
+         # Create a temp. table with new values:
          conn.execute("""create table temp_flags(
                           uid integer null,
                           old_flag integer,
                           new_flag integer,
-                          new_flag_comment text)""")
-         conn.execute("""insert into temp_flags(uid, new_flag, new_flag_comment)
-         select d.cluster_uid, %s, %s
-           from [%s] x
-           join data_references d on d.reference_uid = x.%s
-          where d.reference_table = '%s'
-           """ % (flag_column, flag_comment, table, uid_column, table))
-         conn.execute("""
+                          new_flag_comment text);
+         insert into temp_flags(uid, new_flag)
+         select d.cluster_uid, [{flag_column}]
+           from [{table}] x
+           join data_references d on d.reference_uid = x.[{uid_column}]
+          where d.reference_table = '{table}';
          update clusters
             set {flag} = (select new_flag from temp_flags t where t.uid = clusters.uid)
           where exists (select new_flag from temp_flags t
                          where t.uid = clusters.uid
-                           and t.new_flag > clusters.{flag})
-         """.format(flag=flag))
+                           and t.new_flag > clusters.{flag});
+         drop temp_flags
+         """.format(flag_column=flag_column, table=table,
+                    uid_column=uid_column, flag=flag))
 
 
 def create_table(file_name, file_type, table_name, description,
@@ -155,7 +161,10 @@ def create_table(file_name, file_type, table_name, description,
                  gal_l=None, gal_b=None,
                  delimiter=',',
                  reference_table=None,
-                 reference_column=None):
+                 reference_column=None,
+                 xid_column=None,
+                 xid_value=None,
+                 xid_comment=None):
     # Import data first:
     if file_type is not None and file_type in ['ascii', 'ascii.csv']:
         table = Table.read(file_name, format=file_type, delimiter=delimiter)
@@ -227,6 +236,7 @@ def create_table(file_name, file_type, table_name, description,
 
     insert_clusters(conn, table_name, uid_column, ra_column, dec_column,
                     gal_l, gal_b)
+    update_flags('xidflag', table_name, xid_value, xid_column, uid_column)
     conn.commit()
     print 'Done'
 

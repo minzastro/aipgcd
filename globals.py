@@ -75,9 +75,12 @@ def get_key_description(key, subkey):
                                     and %s""" % (key, null_condition('subkey', subkey)))
     return keys.fetchone()
 
-def get_table_columns(table):
+def get_table_columns(table, full=False):
     cur = get_conn().execute('PRAGMA table_info("%s")' % table)
-    return [row[1] for row in cur.fetchall()]
+    if not full:
+        return [row[1] for row in cur.fetchall()]
+    else:
+        return cur.fetchall()
 
 
 def get_brief_columns(table, masks, negate=True):
@@ -99,7 +102,7 @@ def get_brief_columns(table, masks, negate=True):
     return result
 
 def format_value(value, xformat):
-    print value, len(str(value)), type(str(value)), str(value) == 'None'
+    #print value, len(str(value)), type(str(value)), str(value) == 'None'
     if xformat is None or xformat == '':
         return str(value)
     elif value is None or str(value).strip() == 'None':

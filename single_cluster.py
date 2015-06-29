@@ -144,7 +144,6 @@ def single_cluster(uid):
             link = 'http://vizier.u-strasbg.fr/viz-bin/VizieR-4?%s' % urlencode(url_data)
             moc['link'] = '<a href="%s">Vizier data</a>' % link
         mocs.append(moc)
-    print mocs
     html_data['mocs'] = mocs
     for row in cur.execute("""select rt.table_name,
                                      rt.uid_column,
@@ -193,7 +192,7 @@ def single_cluster(uid):
         full_table.add_column('Parameter',
                               [item[0] for item in cursor.description])
         for irow, arow in enumerate(cursor.fetchall()):
-            full_table.add_column(str(irow), dict(arow).values())
+            full_table.add_column(str(irow), arow)
         if len(t1._rows) > 0:
             html_data['tables'].append({
                 'title': row['description'],
