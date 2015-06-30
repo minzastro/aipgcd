@@ -13,7 +13,7 @@ import cherrypy
 #from cherrypy.lib.static import serve_file
 from single_cluster import single_cluster, \
                            single_cluster_update_comment, \
-                           single_cluster_update_xid, \
+                           single_cluster_update_xid_flag, \
                            single_cluster_update_obs_flag
 from edit_tables import edit_tables
 from edit_table import edit_table, edit_table_update, \
@@ -52,12 +52,16 @@ class HelloWorld(object):
         return single_cluster_update_comment(uid, comment)
 
     @cherrypy.expose
-    def single_cluster_update_xid(self, uid, xid):
-        return single_cluster_update_xid(uid, xid)
+    def single_cluster_update_xid_flag(self, uid, xid_flag, xid_flag_source,
+                                       xid_flag_comment):
+        return single_cluster_update_xid_flag(uid, xid_flag, xid_flag_source,
+                                              xid_flag_comment)
 
     @cherrypy.expose
-    def single_cluster_update_obs_flag(self, uid, obs_flag):
-        return single_cluster_update_obs_flag(uid, obs_flag)
+    def single_cluster_update_obs_flag(self, uid, obs_flag, obs_flag_source,
+                                       obs_flag_comment):
+        return single_cluster_update_obs_flag(uid, obs_flag, obs_flag_source,
+                                              obs_flag_comment)
 
     @cherrypy.expose
     def edit_tables(self):

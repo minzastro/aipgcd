@@ -15,18 +15,28 @@
     <script type="text/javascript" charset="utf8" src="/static/samp.js"></script>
     <!--<script type="text/javascript" charset="utf8" src="/static/jquery.min.js"></script>-->
     <script type="text/javascript" charset="utf8" language="javascript">
-        function xid_change(){
-                $.post('single_cluster_update_xid', {uid: {{uid}},
-                                                         xid: document.getElementById('detection_status').value});
+        function xid_flag_change(){
+                $.post('single_cluster_update_xid_flag', {uid: {{uid}},
+                                                         xid_flag: document.getElementById('xid_flag').value,
+                                                         xid_flag_source: 'User defined',
+                                                         xid_flag_comment: document.getElementById('xid_flag_comment').value});
+                document.getElementById('xid_flag_source').value = 'User defined';
         }
         function obs_flag_change(){
                 $.post('single_cluster_update_obs_flag', {uid: {{uid}},
-                                                              obs_flag: document.getElementById('obs_flag').value});
+                                                         obs_flag: document.getElementById('obs_flag').value,
+                                                         obs_flag_source: 'User defined',
+                                                         obs_flag_comment: document.getElementById('obs_flag_comment').value});
+                document.getElementById('obs_flag_source').value = 'User defined';
         }
 
-        $(window).load(function(){
+        function comment_change(){
+            $.post('single_cluster_update_comment', {uid: {{uid}},
+                                                     comment: document.getElementById('comment').value});
+        };
 
-            document.getElementById('detection_status').value = {{xidflag}};
+        $(window).load(function(){
+            document.getElementById('xid_flag').value = {{xid_flag}};
             document.getElementById('obs_flag').value = {{obs_flag}};
             $(".header").click(function () {
                 $header = $(this);
@@ -41,14 +51,6 @@
                         return $content.is(":visible") ? "Collapse" : "Expand";
                     });
                 });
-            });
-            $('#change_comment').click(function(){
-
-                $.post('single_cluster_update_comment', {uid: {{uid}},
-                                                         comment: document.getElementById('comment').value});
-                var button = document.getElementById('change_comment');
-                button.value = 'Saved!';
-                setTimeout(function(){button.value = 'Submit changes'}, 1000);
             });
             $('#key_values').DataTable({
                 ordering: true,
@@ -66,12 +68,14 @@
 <h1>{{source_id}} from {{source}} (UID={{uid}})</h1>
 <h2>Equatorial coordinates {{ra}}d {{dec}}d</h2>
 <p>Detection status
-  <select id="detection_status" onchange="xid_change()">
+  <select id="xid_flag" onchange="xid_flag_change()">
       <option value='-1'>-1: Not a cluster</option>
       <option value='0'>0: Undecided</option>
       <option value='1'>1: Confirmed cluster</option>
       <option value='2'>2: Confirmed cluster with spectra</option>
   </select>
+  Taken from: <input id="xid_flag_source" type="text" readonly value="{{xid_flag_source}}">
+  Comment:  <input id="xid_flag_comment" type="text" value="{{xid_flag_comment}}" onchange="xid_flag_change()">
 </p>
 <p>Observation status
   <select id="obs_flag" onchange="obs_flag_change() ">
@@ -80,6 +84,8 @@
       <option value='2'>2: Dedicated photometry</option>
       <option value='3'>3: Dedicated spectroscopy</option>
   </select>
+  Taken from: <input id="obs_flag_source" type="text" readonly value="{{obs_flag_source}}">
+  Comment:  <input id="obs_flag_comment" type="text" value="{{obs_flag_comment}}" onchange="obs_flag_change()">
 </p>
 <div style="float: left; margin-right: 20px;"><a target="_blank" href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?in_csys=Equatorial&in_equinox=J2000.0&lon={{ra}}d&lat={{dec}}d&radius=2.0&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&search_type=Near+Position+Search&z_constraint=Unconstrained&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&list_limit=15&img_stamp=YES">NED search</a></div>
 
@@ -131,8 +137,7 @@
 <hr>
 <h1>Comment</h1>
 <div>
-<textarea id="comment" name="comment" cols="40" rows="5">{{comment}}</textarea>
-<input type="button" id="change_comment" value="Submit changes"></input>
+<textarea id="comment" name="comment" cols="40" rows="5" onchange="comment_change()">{{comment}}</textarea>
 </div>
 {%for table in tables%}
 <hr>

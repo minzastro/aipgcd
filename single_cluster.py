@@ -19,26 +19,36 @@ def single_cluster_update_comment(uid, comment):
     return None
 
 
-def single_cluster_update_xid(uid, xid):
+def single_cluster_update_xid_flag(uid, xid_flag, xid_flag_source,
+                                   xid_flag_comment):
+    """
+    Updates xid status for a cluster.
+    """
+    CONN = get_conn()
+    CONN.execute("""update clusters
+                       set xid_flag = %s,
+                           xid_flag_source = '%s',
+                           xid_flag_comment = '%s'
+                     where uid = %s""" % (
+        xid_flag, xid_flag_source, xid_flag_comment, uid))
+    CONN.commit()
+    return None
+
+def single_cluster_update_obs_flag(uid, obs_flag, obs_flag_source,
+                                   obs_flag_comment):
     """
     Updates detection status for a cluster.
     """
     CONN = get_conn()
-    CONN.execute("update clusters set xidflag = %s where uid = %s" % (
-        xid, uid))
+    CONN.execute("""update clusters
+                       set obs_flag = %s,
+                           obs_flag_source = '%s',
+                           obs_flag_comment = '%s'
+                     where uid = %s""" % (
+        obs_flag, obs_flag_source, obs_flag_comment, uid))
     CONN.commit()
     return None
 
-
-def single_cluster_update_obs_flag(uid, obs_flag):
-    """
-    Updates obs_flag for a cluster.
-    """
-    CONN = get_conn()
-    CONN.execute("update clusters set obs_flag = %s where uid = %s" % (
-        obs_flag, uid))
-    CONN.commit()
-    return None
 
 
 def select_cluster_key(uid, table_data, conn):
@@ -90,10 +100,16 @@ def single_cluster(uid):
     CONN = get_conn(dict_row=True)
     cur = CONN.cursor()
     html_data = {}
-    result = CONN.execute("select source, source_id, comment, xidflag, "
-                          "ra, dec, obs_flag"
+    result = CONN.execute("select source, source_id, comment, "
+                          "xid_flag, xid_flag_source, xid_flag_comment,"
+                          "obs_flag, obs_flag_source, obs_flag_comment,"
+                          "ra, dec"
                           " from clusters where uid = %s" % uid).fetchone()
     html_data = dict(result)
+    for key in ['xid_flag_source', 'xid_flag_comment',
+                'obs_flag_source', 'obs_flag_comment']:
+        if html_data[key] is None:
+            html_data[key] = ''
     html_data['uid'] = uid
     html_data['ra'] = '%.6f' % html_data['ra']
     html_data['dec'] = '%.6f' % html_data['dec']
