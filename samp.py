@@ -19,7 +19,9 @@ def data_to_votable(coltypes, header, data):
     data = json.loads(data)
     data = np.array(data)
     data = zip(*data)
+    print header, coltypes, len(data), data[0]
     for irow in xrange(len(data)):
+        print data[irow][0], coltypes[irow]
         if coltypes[irow].lower() == 'i':
             data[irow] = np.asarray(data[irow], dtype=np.int)
             coltypes[irow] = 'i4'

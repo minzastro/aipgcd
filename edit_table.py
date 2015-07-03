@@ -67,10 +67,11 @@ def edit_table_update_column(table, column_name, data_type, data_unit,
                      where reference_table = '%s'
                        and column_name = '%s'
                     """ % (data_type, data_unit,
-                             output_format, description,
-                             table, column_name)).fetchone()
+                           output_format, description,
+                           table, column_name)).fetchone()
     conn.commit()
     return None
+
 
 def edit_table_update(table, description, uid_column, brief_columns):
     """
@@ -98,9 +99,11 @@ def edit_table_key_delete(table, uid):
     conn.commit()
     return None
 
+
 def edit_table_key_update(table, mode, uid, key,
-                    reference_column, error_column_low, error_column_high,
-                    comment):
+                          reference_column,
+                          error_column_low, error_column_high,
+                          comment):
     conn = get_conn()
     if ',' in key:
         key, subkey = key.split(',')
@@ -145,12 +148,13 @@ def edit_table_key_update(table, mode, uid, key,
                 reference_column, error_column_low, error_column_high, comment)
             values ("%s", "%s", %s, %s, %s, %s, %s)
             """ % (table, key, nullify(subkey),
-                  nullify(reference_column),
-                  nullify(error_column_low),
-                  nullify(error_column_high),
-                  nullify(comment)))
+                   nullify(reference_column),
+                   nullify(error_column_low),
+                   nullify(error_column_high),
+                   nullify(comment)))
             conn.commit()
     return None
+
 
 def list_table(table):
     """
@@ -161,18 +165,31 @@ def list_table(table):
     row = conn.execute("""select uid_column, description
                             from reference_tables
                            where table_name = '%s'""" % table).fetchone()
-    sql = "select * from [%s]" % table
+    sql = """select d.cluster_uid, t.*
+               from [{table}] t
+               join data_references d
+                 on d.reference_table = '{table}'
+                and d.reference_uid = t.[{uid}]""".format(table=table,
+                                                          uid=row[0])
     t1 = from_db_cursor(conn.execute(sql))
     columns = conn.execute("""select column_name, data_type, output_format
       from reference_tables_columns
-     where reference_table = '%s'""" % table).fetchall()
+     where reference_table = '%s'
+     order by uid""" % table).fetchall()
+    columns_param = ['I'] # That is for UID
     for column_name, data_type, output_format in columns:
-        if data_type.lower() in ('int', 'integer'):
+        if data_type.lower() in ('int', 'integer', 'long'):
             t1._int_format[column_name] = output_format
+            columns_param.append('I')
         elif data_type.lower() in ('float', 'double', 'real'):
             t1._float_format[column_name] = output_format
+            columns_param.append('F')
+        else:
+            columns_param.append('S')
     html_data = {'name': table,
-                 'table': t1.get_html_string(attributes={'border': 1}),
+                 'table': t1.get_html_string(attributes={'border': 1,
+                                                         'id': 'list_table',
+                                                         'columns': ''.join(columns_param)}),
                  'uid': row[0],
                  'desc': row[1],
                  'sql': sql}

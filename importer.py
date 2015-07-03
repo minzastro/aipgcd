@@ -109,18 +109,26 @@ def create_key(table, key, reference, error_low, error_high, comment,
     comment, comment_column)
     values (%s)""" % ','.join(row))
     conn.commit()
+    if key in ['xid_flag', 'obs_flag']:
+        cursor = conn.execute("""select uid_column from reference_tables
+                                  where table_name = '%s'""" % table)
+        update_flags(conn, key, table,
+                     flag_column=reference,
+                     flag_comment=comment_column,
+                     uid_column=cursor.fetchone()[0])
 
-
-def update_flags(flag, table, flag_value=None,
+def update_flags(conn, flag, table, flag_value=None,
+                 flag_comment=None,
                  flag_column=None, uid_column=None):
     """
     Updating OBS or XID flags with new values.
     """
-    conn = get_conn()
     if flag_value is not None:
         # Set fixed value, if it is larger than existing.
         conn.execute("""update clusters
-                           set {flag} = {flag_value}
+                           set {flag} = {flag_value},
+                               {flag}_source = '{table}',
+                               {flag}_comment = '{comment}'
                          where source = '{table}';
                         update clusters
                            set {flag} = {flag_value}
@@ -131,27 +139,30 @@ def update_flags(flag, table, flag_value=None,
                                           and d.reference_table = '{table}')
                            and {flag} < {flag_value}
                            """.format(flag=flag, flag_value=flag_value,
-                                      table=table))
-     else:
-         # Update by value in the table column.
-         # Create a temp. table with new values:
-         conn.execute("""create table temp_flags(
+                                      table=table, comment=flag_comment))
+    else:
+        # Update by value in the table column.
+        # Create a temp. table with new values:
+        conn.executescript("""create table temp_flags(
                           uid integer null,
                           old_flag integer,
                           new_flag integer,
                           new_flag_comment text);
-         insert into temp_flags(uid, new_flag)
-         select d.cluster_uid, [{flag_column}]
+         insert into temp_flags(uid, new_flag, new_flag_comment)
+         select d.cluster_uid, [{flag_column}], [{flag_comment}]
            from [{table}] x
            join data_references d on d.reference_uid = x.[{uid_column}]
           where d.reference_table = '{table}';
          update clusters
-            set {flag} = (select new_flag from temp_flags t where t.uid = clusters.uid)
+            set {flag} = (select new_flag from temp_flags t where t.uid = clusters.uid),
+                {flag}_source = '{table}',
+                {flag}_comment = (select new_flag_comment from temp_flags t where t.uid = clusters.uid)
           where exists (select new_flag from temp_flags t
                          where t.uid = clusters.uid
                            and t.new_flag > clusters.{flag});
-         drop temp_flags
-         """.format(flag_column=flag_column, table=table,
+         drop table temp_flags
+         """.format(flag_column=flag_column, flag_comment=flag_comment,
+                    table=table,
                     uid_column=uid_column, flag=flag))
 
 
@@ -164,7 +175,10 @@ def create_table(file_name, file_type, table_name, description,
                  reference_column=None,
                  xid_column=None,
                  xid_value=None,
-                 xid_comment=None):
+                 xid_comment=None,
+                 obs_column=None,
+                 obs_value=None,
+                 obs_comment=None):
     # Import data first:
     if file_type is not None and file_type in ['ascii', 'ascii.csv']:
         table = Table.read(file_name, format=file_type, delimiter=delimiter)
@@ -214,6 +228,7 @@ def create_table(file_name, file_type, table_name, description,
         cross_match(conn, table, ra_column, dec_column, gal_l, gal_b,
                     uid_column, table_name)
     else:
+        # Add references:
         rt_uid = conn.execute("""select uid_column
                                   from reference_tables
                                  where table_name = '%s'""" % reference_table)
@@ -236,7 +251,16 @@ def create_table(file_name, file_type, table_name, description,
 
     insert_clusters(conn, table_name, uid_column, ra_column, dec_column,
                     gal_l, gal_b)
-    update_flags('xidflag', table_name, xid_value, xid_column, uid_column)
+    if xid_value is not None:
+        update_flags(conn, 'xid_flag', table,
+                     flag_value=xid_value,
+                     flag_comment=xid_comment,
+                     uid_column=uid_column)
+    if obs_value is not None:
+        update_flags(conn, 'obs_flag', table,
+                     flag_value=obs_value,
+                     flag_comment=obs_comment,
+                     uid_column=uid_column)
     conn.commit()
     print 'Done'
 
@@ -284,7 +308,10 @@ if __name__ == '__main__':
         for par in ['file_name', 'file_type', 'table_name', 'description',
                     'uid_column', 'ra_column', 'dec_column', 'gal_l', 'gal_b',
                     'brief_columns',
-                    'reference_table', 'reference_column']:
+                    'reference_table', 'reference_column',
+                    'xid_value', 'xid_comment',
+                    'obs_value', 'obs_comment',
+                    ]:
             if par in main:
                 params[par] = main[par]
         if 'brief_columns' in params:
