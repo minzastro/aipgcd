@@ -111,6 +111,14 @@ def vo_cone_search(args):
                                            where m.uid = c.uid
                                              and m.moc_name = '%s')
                                              """ % (cond, moc))
+    if 'flag_name' in args:
+        for iflag, flag in enumerate(args['flag_name']):
+            if flag == 'obs_flag':
+                value = args['obs_values'][iflag]
+            else:
+                value = args['xid_values'][iflag]
+            conditions.append("""
+                and %s %s %s""" % (flag, args['flag_constraint'][iflag], value))
     t = JINJA.get_template('vo_cone_search.template')
 
     sql = """select c.uid, %s ra, dec, c.source, source_id, xid_flag, obs_flag,

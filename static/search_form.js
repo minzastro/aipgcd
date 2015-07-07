@@ -113,3 +113,44 @@ function getMOCDiv(moc_list, moc_names, moc_descr){
   createDeletionButton(di);
   document.getElementById(moc_list).appendChild(di);
 }
+
+function setFlagSelector(parent, value){
+    if (value == 'xid_flag'){
+        parent.getElementsByTagName('select')[2].style.visibility = 'visible';
+        parent.getElementsByTagName('select')[3].style.visibility = 'hidden';
+    } else {
+        parent.getElementsByTagName('select')[3].style.visibility = 'visible';
+        parent.getElementsByTagName('select')[2].style.visibility = 'hidden';
+    }
+}
+
+function getFlagDiv(flag_list){
+  var di = document.createElement('div');
+  // MOC constraint:
+  var select1 = document.createElement('select');
+  select1.setAttribute('name', 'flag_name');
+  fillSelect(select1, ['xid_flag', 'obs_flag'], ['xid_flag', 'obs_flag']);
+  select1.addEventListener('change', function(){
+      setFlagSelector(di, select1.options[select1.selectedIndex].innerText);
+  });
+  di.appendChild(select1);
+  var select2 = document.createElement('select');
+  select2.setAttribute('name', 'flag_constraint');
+  fillSelect(select2, ['>=', '=<'], ['>=', '=<']);
+  di.appendChild(select2);
+  var select3 = document.createElement('select');
+  select3.setAttribute('name', 'xid_values');
+  fillSelect(select3, ['-1', '0', '1', '2'],
+                        ['-1: Not a cluster', '0: Undecided',
+                         '1: Confirmed cluster', '2: Confirmed cluster with spectra']);
+  di.appendChild(select3);
+  var select4 = document.createElement('select');
+  select4.setAttribute('name', 'obs_values');
+  fillSelect(select4, ['0', '1', '2', '3'],
+                        ['0: No data', '1: In a large survey',
+                         '2: Dedicated photometry', '3: Dedicated spectroscopy']);
+  di.appendChild(select4);
+  setFlagSelector(di, select1.options[0].innerText);
+  createDeletionButton(di);
+  document.getElementById(flag_list).appendChild(di);
+}

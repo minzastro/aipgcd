@@ -59,8 +59,10 @@
                 onclick="getTableDiv('tables', [{{table_x}}])"/>
         <input type='button' value="Add key constraint"
                 onclick="getKeyDiv('keys', [{{key_x}}])"/>
-        <input type='button' value="Add catalog constraint"
+        <input type='button' value="Add MOC constraint"
                 onclick="getMOCDiv('mocs', [{{moc_names}}], [{{moc_descr}}])"/>
+        <input type='button' value="Add flag constraint"
+                onclick="getFlagDiv('flags')"/>
         <form method="post" action="../vo_cone_search">
             <input type="checkbox" name="fullsky" id="fullsky" style="visibility: hidden"/>
             <fieldset id="vocone">
@@ -81,6 +83,9 @@
             </fieldset>
             <fieldset id='mocs'>
                 <legend>Catalog selection</legend>
+            </fieldset>
+            <fieldset id='flags'>
+                <legend>Flag selection</legend>
             </fieldset>
             <div><button type="submit">Search</button></div>
         </form>
