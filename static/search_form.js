@@ -136,7 +136,7 @@ function getFlagDiv(flag_list){
   di.appendChild(select1);
   var select2 = document.createElement('select');
   select2.setAttribute('name', 'flag_constraint');
-  fillSelect(select2, ['>=', '=<'], ['>=', '=<']);
+  fillSelect(select2, ['>=', '<='], ['>=', '<=']);
   di.appendChild(select2);
   var select3 = document.createElement('select');
   select3.setAttribute('name', 'xid_values');
@@ -151,6 +151,6 @@ function getFlagDiv(flag_list){
                          '2: Dedicated photometry', '3: Dedicated spectroscopy']);
   di.appendChild(select4);
   setFlagSelector(di, select1.options[0].innerText);
-  createDeletionButton(di);
+    createDeletionButton(di);
   document.getElementById(flag_list).appendChild(di);
 }

@@ -9,3 +9,10 @@ def quoted_list(data):
 
 def quoted_list_item(data, item):
     return ','.join(["'%s'" % key[item] for key in data])
+
+def dict_values_to_list(args, keys):
+    for valid in keys:
+        if valid in args:
+            if isinstance(args[valid], basestring):
+                args[valid] = [args[valid]]
+    return args

@@ -6,6 +6,7 @@ Created on Mon Dec 15 21:22:39 2014
 """
 from prettiesttable import from_db_cursor
 from globals import get_conn, JINJA
+from utils import dict_values_to_list
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
@@ -74,10 +75,8 @@ def vo_cone_search(args):
 
     if 'condition' in args:
         extra_counter = 0
-        for valid in ['condition', 'in_key', 'constraint', 'expression']:
-            if valid in args:
-                if isinstance(args[valid], basestring):
-                    args[valid] = [args[valid]]
+        args =  dict_values_to_list(args, ['condition', 'in_key',
+                                           'constraint', 'expression'])
         for icondition, condition in enumerate(args['condition']):
             if ',' in args['in_key'][icondition]:
                 key, subkey = args['in_key'][icondition].split(',')
@@ -102,9 +101,7 @@ def vo_cone_search(args):
                                                        expr))
                 extra_counter = extra_counter + 1
     if 'has_moc' in args:
-        for valid in ['has_moc', 'in_moc']:
-            if isinstance(args[valid], basestring):
-                args[valid] = [args[valid]]
+        args = dict_values_to_list(args, ['has_moc', 'in_moc'])
         for cond, moc in zip(args['has_moc'], args['in_moc']):
             conditions.append(""" and %s (select 1
                                             from cluster_in_moc m
@@ -112,6 +109,8 @@ def vo_cone_search(args):
                                              and m.moc_name = '%s')
                                              """ % (cond, moc))
     if 'flag_name' in args:
+        args = dict_values_to_list(args, ['flag_name', 'flag_constraint',
+                                          'xid_values', 'obs_values'])
         for iflag, flag in enumerate(args['flag_name']):
             if flag == 'obs_flag':
                 value = args['obs_values'][iflag]
