@@ -22,6 +22,7 @@ JINJA = Environment(loader=FileSystemLoader('.'))
 
 def get_conn(dict_row=False):
     conn = sqlite3.connect('%sAIP_clusters.sqlite' % DB_LOCATION)
+    print DB_LOCATION
     conn.enable_load_extension(True)
     conn.execute("select load_extension('%s/sqlite_extentions/libsqlitefunctions.so')" % os.path.dirname(__file__))
     conn.enable_load_extension(False)

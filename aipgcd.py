@@ -26,12 +26,14 @@ from search import search
 from samp import data_to_votable
 from globals import get_subkey_list, get_key_description, \
                     get_table_columns
+import os
 
-if path.dirname(__file__).startswith('/srv'):
+if os.path.abspath(__file__).startswith('/srv'):
     AIPGCD_URL = 'archie.aip.de'
 else:
     AIPGCD_URL = '127.0.0.1:8444'
 
+print AIPGCD_URL, os.path.abspath(__file__), __file__
 
 def error_page_404(status, message, traceback, version):
     return "Error %s - Page does not exist yet. It might appear later!" % status

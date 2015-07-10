@@ -7,7 +7,7 @@ from os import path
 NAME = '%s/..' % path.dirname(__file__)
 
 from mocfinder import MOCFinder
-from globals import get_conn
+from globals import get_conn, DB_LOCATION
 from glob import glob
 
 def search_mocs(mocname, mocfile):
