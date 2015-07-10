@@ -23,10 +23,14 @@ def data_to_votable(coltypes, header, data):
     for irow in xrange(len(data)):
         print data[irow][0], coltypes[irow]
         if coltypes[irow].lower() == 'i':
-            data[irow] = np.asarray(data[irow], dtype=np.int)
+            data[irow] = np.genfromtxt(data[irow], dtype=np.int,
+                                       missing_values='None',
+                                       usemask=True)
             coltypes[irow] = 'i4'
         elif coltypes[irow].lower() == 'f':
-            data[irow] = np.asarray(data[irow], dtype=np.float)
+            data[irow] = np.genfromtxt(data[irow], dtype=np.float,
+                                       missing_values='None',
+                                       usemask=True)
             coltypes[irow] = 'f8'
     table = ATable(data=data, names=header, dtype=coltypes)
     temp_file = NamedTemporaryFile(delete=False, dir='./static/output_cache',
