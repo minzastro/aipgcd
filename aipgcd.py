@@ -21,6 +21,7 @@ from edit_table import edit_table, edit_table_update, \
                        edit_table_key_delete, edit_table_key_update, \
                        edit_table_update_column
 from key_list import key_list, key_list_update, key_list_delete
+from moc_list import moc_list
 from vo_cone_search import vo_cone_search
 from search import search
 from samp import data_to_votable
@@ -82,6 +83,10 @@ class HelloWorld(object):
     @cherrypy.expose
     def key_list(self):
         return key_list()
+
+    @cherrypy.expose
+    def moc_list(self):
+        return moc_list()
 
     @cherrypy.expose
     def key_list_update(self, key, subkey, description, format):

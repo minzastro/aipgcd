@@ -36,11 +36,12 @@
 </head>
 
 <body>
-    <ul id='menu_wrap' class='l_blue'>
+    {% include "./static/navigation_bar.html"  %}
+    <!--<ul id='menu_wrap' class='l_blue'>
       <li><a href="../index">Home</a></li>
       <li><a href='../edit_tables'>List tables</a></li>
       <li><a href='../key_list'>List keys</a></li>
-   </ul>
+   </ul>-->
 
     <div>
         <h2>This is a temporary search</h2>
