@@ -3,6 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <link rel=stylesheet href='static/style.css' type='text/css'>
+<link rel=stylesheet href='static/jquery-ui.theme.css' type='text/css'>
 <link rel="stylesheet" type="text/css" href="/static/DataTables/media/css/jquery.dataTables.css">
 
 <head>
@@ -10,6 +11,8 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="generator" content="Geany 1.22" />
     <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/jquery-ui.js"></script>
+    <script type="text/javascript" charset="utf8" src="/static/jquery-ui.js"></script>
     <script type="text/javascript" charset="utf8" src="/static/DataTables/media/js/jquery.dataTables.js"></script>
     <script type="text/javascript" charset="utf8" src="/static/aipgcd.js"></script>
     <script type="text/javascript" charset="utf8" src="/static/samp.js"></script>
@@ -35,7 +38,8 @@
                                                      comment: document.getElementById('comment').value});
         };
 
-        $(window).load(function(){
+        //$(window).load(function(){
+        $(document).ready(function(){
             document.getElementById('xid_flag').value = {{xid_flag}};
             document.getElementById('obs_flag').value = {{obs_flag}};
             $(".header").click(function () {
@@ -54,9 +58,79 @@
             });
             $('#key_values').DataTable({
                 ordering: true,
-                "scrollY":        window.innerHeight - 200,
+                "scrollY": window.innerHeight - 200,
                 "scrollCollapse": true,
                 paging: false
+            });
+
+            $("#dialog").dialog({
+               autoOpen: false,
+               resizable: false,
+               minHeight: false,
+               position: {
+                    my: "center",
+                    at: "center",
+                    of: window,
+                    collision: "none"
+                },
+                create: function (event, ui) {
+                    $(event.target).parent().css('position', 'fixed');
+                }
+            });
+
+            $("#key_values tbody").on( 'click', 'tr', function (e){
+                if (e.ctrlKey){
+                    $(this).toggleClass('selected');
+                }
+                else {
+                    var row_data = $(this).children('td');
+                    if (row_data[5].innerText == 'User defined'){
+                        $("#dialog select[name='key_name']").val(row_data[0].innerText);
+                        $("#dialog input[name='description']").val(row_data[1].innerText);
+                        $("#dialog input[name='key_value']").val(row_data[2].innerText);
+                        $('#dialog').dialog('option', 'title', row_data[0].innerText);
+                        $('#dialog').dialog('open');
+                    }
+                }
+            });
+
+            $('#new_key').click(function(){
+               $('#dialog').dialog('open');
+            });
+
+            $('#save_changes').click(function(){
+                var frm = document.getElementById('dialog');
+                var xkey = '';
+                if (frm.querySelector('[name=key]:checked').value == 'select_from'){
+                    xkey = frm.querySelector('[name=key_name]').value;
+                }
+                else {
+                    xkey = frm.querySelector('[name=new_key_name]').value;
+                }
+                $.post('key_list_update', {key: xkey,
+                                              subkey: frm.querySelector('#subkey').value,
+                                              description: frm.querySelector('#description').value,
+                                              format: frm.querySelector('[name=output_format]').value,
+                                             },
+                                             function(response){
+                                                $('#dialog').dialog('close');
+                                                window.location.reload();
+                                            });
+            });
+
+            $('#delete_key').click(function(){
+                if (confirm('Really delete selected keys?')){
+                    items = []
+                    var data = $("#key_list").DataTable().rows('.selected').data();
+                    alert(data.length);
+                    for (var i = 0; i < data.length; i++ ){
+                        items.push([data[i][0], data[i][1]]);
+                    }
+                    $.post('key_list_delete', {itemlist: items},
+                                             function(response){
+                                                window.location.reload();
+                                             });
+                }
             });
         });
     </script>
@@ -108,6 +182,7 @@
 </table>
 </div>
 
+<div>
 <table id="key_values" class="compact hover" width=500 columns='SSSSSS'>
     <caption>Main parameters <input type='button' onclick='samp_table("key_values", true)' value='Send to SAMP'/></caption>
     <thead>
@@ -133,7 +208,29 @@
     {%endfor%}
     </tbody>
 </table>
+</div>
 
+<div id="dialog" title="Edit user key" id="edit_key">
+    <div>
+        <input type='radio' name='key' value='select_from' checked>
+        <label for="key_name">Existing key: </label>
+        <select name="key_name">
+          {% for key_item in select_key %}
+            <option value={{key_item}}>{{key_item}}</option>
+          {% endfor %}
+        </select>
+    </div>
+    <div>
+        <input type='radio' name='key' value='enter_new'>
+        <label for="new_key_name">New key: </label>
+        <input type='text' name="new_key_name" value=''/>
+    </div>
+    <label for="description">Description: </label>
+    <input type='text' name="description" id="description" value=''></input>
+    <label for="key_value">Value: </label>
+    <input type='text' name="key_value" value=''></input>
+    <input type="button" id="save_changes" value="Submit changes"></input>
+</div>
 <hr>
 <h1>Comment</h1>
 <div>

@@ -5,6 +5,7 @@ Created on Mon Dec  8 15:51:22 2014
 """
 from prettiesttable import from_db_cursor, PrettiestTable
 from globals import get_conn, JINJA, get_brief_columns, format_value
+from globals import get_key_list
 from urllib import urlencode
 
 def single_cluster_update_comment(uid, comment):
@@ -49,6 +50,25 @@ def single_cluster_update_obs_flag(uid, obs_flag, obs_flag_source,
     CONN.commit()
     return None
 
+
+def single_cluster_key_value_update(uid, key, subkey, value):
+    """
+    Update per cluster key.
+    """
+    #TODO: support key changes.
+    if subkey == '':
+        subkey_cond = 'subkey is null'
+    else:
+        subkey_cond = "subkey = '%s'" % subkey
+    CONN = get_conn()
+    CONN.execute("""update per_cluster_keys
+                       set value = %s
+                     where iid = %s
+                       and key = "%s"
+                       and %s
+                       """ % (value, uid, key, subkey_cond))
+    CONN.commit()
+    return None
 
 
 def select_cluster_key(uid, table_data, conn):
@@ -129,7 +149,7 @@ def single_cluster(uid):
                 'value': format_value(key['value'], key['output_format']),
                 'source': 'User defined'}
          html_data['params'].append(par)
-
+    html_data['select_key'] = get_key_list(CONN)
     mocs = []
     for row in CONN.execute("""select m.moc_name,
                                       coalesce(m.description, m.moc_name) as description,
