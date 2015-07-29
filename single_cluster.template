@@ -86,8 +86,10 @@
                     var row_data = $(this).children('td');
                     if (row_data[5].innerText == 'User defined'){
                         $("#dialog select[name='key_name']").val(row_data[0].innerText);
-                        $("#dialog input[name='description']").val(row_data[1].innerText);
                         $("#dialog input[name='key_value']").val(row_data[2].innerText);
+                        $("#dialog input[name='key_error_low']").val(row_data[3].innerText);
+                        $("#dialog input[name='key_error_high']").val(row_data[4].innerText);
+                        $("#dialog input[name='key_comment']").val(row_data[6].innerText);
                         $('#dialog').dialog('option', 'title', row_data[0].innerText);
                         $('#dialog').dialog('open');
                     }
@@ -100,22 +102,18 @@
 
             $('#save_changes').click(function(){
                 var frm = document.getElementById('dialog');
-                var xkey = '';
-                if (frm.querySelector('[name=key]:checked').value == 'select_from'){
-                    xkey = frm.querySelector('[name=key_name]').value;
-                }
-                else {
-                    xkey = frm.querySelector('[name=new_key_name]').value;
-                }
-                $.post('key_list_update', {key: xkey,
-                                              subkey: frm.querySelector('#subkey').value,
-                                              description: frm.querySelector('#description').value,
-                                              format: frm.querySelector('[name=output_format]').value,
-                                             },
-                                             function(response){
-                                                $('#dialog').dialog('close');
-                                                window.location.reload();
-                                            });
+                $.post('single_cluster_key_value_update', {
+                    uid: {{uid}},
+                    key: frm.querySelector('[name=key_name]').value,
+                    key_value: frm.querySelector('[name=key_value]').value,
+                    key_err_low: frm.querySelector('[name=key_error_low]').value,
+                    key_err_high: frm.querySelector('[name=key_error_high]').value,
+                    key_comment: frm.querySelector('[name=key_comment]').value,
+                },
+                function(response){
+                    $('#dialog').dialog('close');
+                    window.location.reload();
+                });
             });
 
             $('#delete_key').click(function(){
@@ -183,7 +181,7 @@
 </div>
 
 <div>
-<table id="key_values" class="compact hover" width=500 columns='SSSSSS'>
+<table id="key_values" class="compact hover" width=500 columns='SSSSSSS'>
     <caption>Main parameters <input type='button' onclick='samp_table("key_values", true)' value='Send to SAMP'/></caption>
     <thead>
         <tr>
@@ -193,6 +191,7 @@
             <th>Error (lower)</th>
             <th>Error (upper)</th>
             <th>Source</th>
+            <th>Comment</th>
         </tr>
     </thead>
     <tbody>
@@ -204,31 +203,30 @@
         <td>{{par.err_low}}</td>
         <td>{{par.err_high}}</td>
         <td>{{par.source}}</td>
+        <td>{{par.comment}}</td>
     </tr>
     {%endfor%}
     </tbody>
 </table>
 </div>
 
-<div id="dialog" title="Edit user key" id="edit_key">
+<div id="dialog" title="Edit user key">
     <div>
-        <input type='radio' name='key' value='select_from' checked>
-        <label for="key_name">Existing key: </label>
+        <label for="key_name">Key: </label>
         <select name="key_name">
           {% for key_item in select_key %}
             <option value={{key_item}}>{{key_item}}</option>
           {% endfor %}
         </select>
     </div>
-    <div>
-        <input type='radio' name='key' value='enter_new'>
-        <label for="new_key_name">New key: </label>
-        <input type='text' name="new_key_name" value=''/>
-    </div>
-    <label for="description">Description: </label>
-    <input type='text' name="description" id="description" value=''></input>
     <label for="key_value">Value: </label>
     <input type='text' name="key_value" value=''></input>
+    <label for="key_error_low">Lower error: </label>
+    <input type='text' name="key_error_low" value=''></input>
+    <label for="key_error_high">Upper error: </label>
+    <input type='text' name="key_error_high" value=''></input>
+    <label for="key_comment">Comment: </label>
+    <input type='text' name="key_comment" value=''></input>
     <input type="button" id="save_changes" value="Submit changes"></input>
 </div>
 <hr>

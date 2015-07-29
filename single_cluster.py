@@ -51,10 +51,16 @@ def single_cluster_update_obs_flag(uid, obs_flag, obs_flag_source,
     return None
 
 
-def single_cluster_key_value_update(uid, key, subkey, value):
+def single_cluster_key_value_update(uid, key, key_value,
+                                    key_err_low, key_err_high,
+                                    key_comment):
     """
     Update per cluster key.
     """
+    if ',' in key:
+        key, subkey = key.split(',')
+    else:
+        subkey = ''
     #TODO: support key changes.
     if subkey == '':
         subkey_cond = 'subkey is null'
@@ -62,11 +68,15 @@ def single_cluster_key_value_update(uid, key, subkey, value):
         subkey_cond = "subkey = '%s'" % subkey
     CONN = get_conn()
     CONN.execute("""update per_cluster_keys
-                       set value = %s
-                     where iid = %s
+                       set value = "%s",
+                           value_error_low = "%s",
+                           value_error_high = "%s",
+                           comment = "%s"
+                     where uid = %s
                        and key = "%s"
                        and %s
-                       """ % (value, uid, key, subkey_cond))
+                       """ % (key_value, key_err_low, key_err_high,
+                              key_comment, uid, key, subkey_cond))
     CONN.commit()
     return None
 
@@ -147,6 +157,9 @@ def single_cluster(uid):
          par = {'name': key['key'],
                 'desc': key['description'],
                 'value': format_value(key['value'], key['output_format']),
+                'err_low': key['value_error_low'],
+                'err_high': key['value_error_high'],
+                'comment': key['comment'],
                 'source': 'User defined'}
          html_data['params'].append(par)
     html_data['select_key'] = get_key_list(CONN)
