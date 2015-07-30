@@ -11,6 +11,13 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 
 def build_key_constraint(conn, key, subkey_cond, condition):
+    """
+    Create an advanced constraint on the key/subkey pair.
+    Might involve inequalities on the key value.
+    Example:
+      constraint = build_key_constraint(conn, 'z', 'subkey is null',
+                                        '> 0.5')
+    """
     cur = conn.cursor()
     tables = cur.execute("""select reference_table, reference_column, uid_column
                               from reference_tables_keys k
@@ -31,9 +38,25 @@ def build_key_constraint(conn, key, subkey_cond, condition):
 
 def vo_cone_search(args):
     """
-    Perform a cone-search.
-    ra, decl in degrees,
-    radius in arcmin.
+    Performs a cluster search request.
+    Possible args keys are:
+        ra, decl - cone center in degrees;
+        radius - cone radius in arcmin;
+        fullsky - perform full-sky search. Cone constraints are ignored;
+        in_table - name of the table or list of table names,
+                   constraint will be set on cluster presence/
+                   absence in this table(s);
+        has_record - list of 'exists' or 'not exists' strings,
+                     one for each value in in_table;
+        condition \
+        in_key    |
+        constraint|
+        expression/
+        in_moc - name of MOC or list of MOCs,
+                 constraint will be set on cluster entering/
+                 not entering the MOC area;
+        has_moc - list of 'exists' or 'not exists' strings,
+                  one for each value in in_moc;
     """
     conn = get_conn()
     conditions = []

@@ -58,6 +58,21 @@ def edit_table(table):
 
 def edit_table_update_column(table, column_name, data_type, data_unit,
                              output_format, description):
+    """
+    Update a column metadata in the table.
+    
+    :param table: name of the table to edit;
+    
+    :param column_name: name of the column in the table;
+    
+    :param data_type: column data type (pythonic);
+    
+    :param data_unit: value units (arbitrary string);
+    
+    :param output_format: python format string;
+    
+    :param description:  arbitrary description.
+    """
     conn = get_conn()
     conn.execute("""update reference_tables_columns
                        set data_type = '%s',
@@ -91,6 +106,9 @@ def edit_table_update(table, description, uid_column, brief_columns):
 
 
 def edit_table_key_delete(table, uid):
+    """
+    Delete
+    """
     conn = get_conn()
     conn.execute(u"""
     delete from reference_tables_keys

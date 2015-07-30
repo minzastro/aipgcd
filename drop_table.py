@@ -2,6 +2,10 @@
 """
 Created on Tue Dec 30 12:48:40 2014
 @author: mints
+
+Tool to remove a catalog from the database.
+Clears up all traces in all relevant tables. Use with care.
+BACKUP BEFORE USE!
 """
 import sqlite3
 import argparse
@@ -13,7 +17,8 @@ delete from data_references where reference_table = '{0}';
 delete from reference_tables_keys where reference_table = '{0}';
 delete from reference_tables_columns where reference_table = '{0}';
 delete from reference_tables where table_name = '{0}';
-delete from clusters where source = '{0}';
+delete from clusters where source = '{0}'
+        and not exists (select 1 from data_references dr where dr.reference_uid = clusters.uid);
 drop table [{0}]""".format(table_name))
     conn.commit()
 

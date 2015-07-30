@@ -14,7 +14,8 @@ import cherrypy
 from single_cluster import single_cluster, \
                            single_cluster_update_comment, \
                            single_cluster_update_xid_flag, \
-                           single_cluster_update_obs_flag
+                           single_cluster_update_obs_flag, \
+                           single_cluster_key_value_update
 from edit_tables import edit_tables
 from edit_table import edit_table, edit_table_update, \
                        list_table, \
@@ -66,6 +67,13 @@ class HelloWorld(object):
         return single_cluster_update_obs_flag(uid, obs_flag, obs_flag_source,
                                               obs_flag_comment)
 
+    @cherrypy.expose
+    def single_cluster_key_value_update(self, uid, key, key_value,
+                                        key_err_low, key_err_high,
+                                        key_comment):
+        return single_cluster_key_value_update(uid, key, key_value,
+                                    key_err_low, key_err_high,
+                                    key_comment)
     @cherrypy.expose
     def edit_tables(self):
         return edit_tables()

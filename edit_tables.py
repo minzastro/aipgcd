@@ -7,6 +7,9 @@ Created on Mon Dec 15 21:03:38 2014
 from globals import get_conn, JINJA
 
 def edit_tables():
+    """
+    List of data tables.
+    """
     t = JINJA.get_template('tables.template')
     cur = get_conn().cursor()
     html_data = {}

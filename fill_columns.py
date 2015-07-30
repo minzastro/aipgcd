@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Jan 24 12:07:16 2015
-
 @author: minz
+
+A script to fill in column metadata.
+Use on your own risk.
+Proper job is to be done by import script.
 """
 
 import sys
