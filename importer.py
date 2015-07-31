@@ -11,6 +11,7 @@ from astropy.coordinates import SkyCoord
 from astropy.extern.configobj.configobj import ConfigObj
 from globals import get_conn
 from astropy import units as u
+from mocfinder import MOCFinder
 
 
 def get_field_datatype(field):
@@ -63,13 +64,22 @@ select uid, '{0}', source_id
         print 'Updating galactic coordinates'
         sky = SkyCoord(data[:, 1], data[:, 2], frame='icrs', unit='deg')
         gal = sky.galactic
-        #conn.commit() # Trying to speed things up
         for irow, uid in enumerate(data[:, 0]):
             conn.execute("""
               update clusters
                  set gal_l = %s, gal_b = %s
                where uid = %s""" % (gal[irow].l.deg, gal[irow].b.deg, uid))
-
+    mocs = conn.execute("""select moc_name, moc_file
+                             from mocs
+                            where not is_full_sky""").fetchall()
+    mocfinders = [MOCFinder(moc_file, moc_name) for moc_name, moc_file in mocs]
+    result = []
+    for mocfinder in mocfinders:
+        presence = mocfinder.is_in(data[:, 1], data[:, 2])
+        for uid in data[presence, 1]:
+            result.append(""" insert into cluster_in_moc(uid, moc_name)
+                              values (%s, '%s');""" % (uid, mocfinder.moc_name))
+    conn.execute(' '.join(result))
 
 def cross_match(conn, table, ra_column, dec_column, gal_l, gal_b,
                 uid_column, table_name):
