@@ -10,6 +10,7 @@ from utils import dict_values_to_list
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+
 def build_key_constraint(conn, key, subkey_cond, condition):
     """
     Create an advanced constraint on the key/subkey pair.
@@ -36,6 +37,50 @@ def build_key_constraint(conn, key, subkey_cond, condition):
     return 'and (%s)' % ' or '.join(conditions)
 
 
+def get_subkey_constraint(keysubkey):
+    """
+    Get a proper subkey constrain from key-subkey string.
+    """
+    if ',' in keysubkey:
+        key, subkey = keysubkey.split(',')
+        if subkey != 'all subkeys':
+            subkey_cond = "k.subkey ='%s'" % subkey
+        else:
+            subkey_cond = '1=1'
+    else:
+        key = keysubkey
+        subkey_cond = 'k.subkey is null'
+    return key, subkey, subkey_cond
+
+
+def get_cone_search_constraint(args):
+    ra = args['ra']
+    decl = args['decl']
+    if ':' in ra or ':' in decl:
+        coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
+    elif 'h' in ra:
+        coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
+    elif '.' in ra:
+        coord = SkyCoord(ra, decl, unit='deg')
+    else:
+        coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
+    ra = coord.ra.deg
+    decl = coord.dec.deg
+    radius = args['radius']
+    condition = """
+    and haversine(c.ra, c.dec, {0}, {1}) < {2}/60.""".format(ra, decl,
+                                                             radius)
+    extra_column = """ haversine(c.ra, c.dec, {0}, {1}) as "_r (arcmin)",
+                   """.format(ra, decl, radius)
+    return condition, extra_column
+
+
+def get_table_constraint(table, exists):
+    return """ and %s (select 1
+                         from data_references dr
+                        where dr.cluster_uid = c.uid
+                          and dr.reference_table = '%s')""" % (table, exists)
+
 def vo_cone_search(args):
     """
     Performs a cluster search request.
@@ -61,55 +106,25 @@ def vo_cone_search(args):
     conn = get_conn()
     conditions = []
     if 'fullsky' not in args:
-        ra = args['ra']
-        decl = args['decl']
-        if ':' in ra or ':' in decl:
-            coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
-        elif 'h' in ra:
-            coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
-        elif '.' in ra:
-            coord = SkyCoord(ra, decl, unit='deg')
-        else:
-            coord = SkyCoord(ra, decl, unit=(u.hourangle, u.deg))
-        ra = coord.ra.deg
-        decl = coord.dec.deg
-        radius = args['radius']
-        conditions.append("""
-        and haversine(c.ra, c.dec, {0}, {1}) < {2}/60.""".format(ra, decl,
-                                                              radius))
-        extra_columns = """ haversine(c.ra, c.dec, {0}, {1})
-                            as "_r (arcmin)", """.format(ra, decl, radius)
+        constraint, extra_columns = get_cone_search_constraint(args)
     else:
         extra_columns = ''
     if 'in_table' in args:
         if isinstance(args['in_table'], basestring):
-            conditions.append("""and %s (select 1
-                                       from data_references dr
-                                      where dr.cluster_uid = c.uid
-                                        and dr.reference_table = '%s')""" % (
-                                        args['has_record'], args['in_table']))
+            conditions.append(get_table_constraint(args['has_record'],
+                                                   args['in_table']))
         else:
             for itable, table in enumerate(args['in_table']):
-                conditions.append("""and %s (select 1
-                                           from data_references dr
-                                          where dr.cluster_uid = c.uid
-                                            and dr.reference_table = '%s')""" % (
-                                            args['has_record'][itable], table))
+                conditions.append(
+                    get_table_constraint(args['has_record'][itable], table))
 
     if 'condition' in args:
         extra_counter = 0
-        args =  dict_values_to_list(args, ['condition', 'in_key',
-                                           'constraint', 'expression'])
+        args = dict_values_to_list(args, ['condition', 'in_key',
+                                          'constraint', 'expression'])
         for icondition, condition in enumerate(args['condition']):
-            if ',' in args['in_key'][icondition]:
-                key, subkey = args['in_key'][icondition].split(',')
-                if subkey != 'all subkeys':
-                    subkey_cond = "k.subkey ='%s'" % subkey
-                else:
-                    subkey_cond = '1=1'
-            else:
-                key = args['in_key'][icondition]
-                subkey_cond = 'k.subkey is null'
+            key, subkey, subkey_cond = \
+                get_subkey_constraint(args['in_key'][icondition])
             if condition != 'extra':
                 conditions.append("""and %s (select 1
                                        from reference_tables_keys k

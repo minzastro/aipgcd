@@ -220,7 +220,8 @@ def single_cluster(uid):
         t1.border = True
         t1.float_format = '.3e'
         for column_properties in CONN.execute("""
-        select column_name, output_format, description, data_unit, lower(data_type) as data_type
+        select column_name, output_format, description,
+               data_unit, lower(data_type) as data_type
           from reference_tables_columns
          where reference_table = '%s'""" % row['table_name']).fetchall():
             if column_properties['data_type'] == 'integer':
