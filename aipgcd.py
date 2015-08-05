@@ -68,10 +68,10 @@ class HelloWorld(object):
                                               obs_flag_comment)
 
     @cherrypy.expose
-    def single_cluster_key_value_update(self, uid, key, key_value,
+    def single_cluster_key_value_update(self, uid, old_key, key, key_value,
                                         key_err_low, key_err_high,
                                         key_comment):
-        return single_cluster_key_value_update(uid, key, key_value,
+        return single_cluster_key_value_update(uid, old_key, key, key_value,
                                     key_err_low, key_err_high,
                                     key_comment)
     @cherrypy.expose

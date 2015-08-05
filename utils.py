@@ -16,3 +16,15 @@ def dict_values_to_list(args, keys):
             if isinstance(args[valid], basestring):
                 args[valid] = [args[valid]]
     return args
+
+def key_subkey_cond(key):
+    if ',' in key:
+        key, subkey = key.split(',')
+    else:
+        subkey = ''
+    #TODO: support key changes.
+    if subkey == '':
+        subkey_cond = 'subkey is null'
+    else:
+        subkey_cond = "subkey = '%s'" % subkey
+    return key, subkey, subkey_cond

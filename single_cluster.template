@@ -85,6 +85,7 @@
                 else {
                     var row_data = $(this).children('td');
                     if (row_data[5].innerText == 'User defined'){
+                        $("#dialog input[name='old_key']").val(row_data[0].innerText);
                         $("#dialog select[name='key_name']").val(row_data[0].innerText);
                         $("#dialog input[name='key_value']").val(row_data[2].innerText);
                         $("#dialog input[name='key_error_low']").val(row_data[3].innerText);
@@ -104,6 +105,7 @@
                 var frm = document.getElementById('dialog');
                 $.post('single_cluster_key_value_update', {
                     uid: {{uid}},
+                    old_key: frm.querySelector('[name=old_key]').value,
                     key: frm.querySelector('[name=key_name]').value,
                     key_value: frm.querySelector('[name=key_value]').value,
                     key_err_low: frm.querySelector('[name=key_error_low]').value,
@@ -211,6 +213,7 @@
 </div>
 
 <div id="dialog" title="Edit user key">
+    <input type="hidden" name="old_key"></input>
     <div>
         <label for="key_name">Key: </label>
         <select name="key_name">

@@ -54,6 +54,9 @@ def get_subkey_constraint(keysubkey):
 
 
 def get_cone_search_constraint(args):
+    """
+    Create a VO cone search constraint.
+    """
     ra = args['ra']
     decl = args['decl']
     if ':' in ra or ':' in decl:
@@ -71,11 +74,14 @@ def get_cone_search_constraint(args):
     and haversine(c.ra, c.dec, {0}, {1}) < {2}/60.""".format(ra, decl,
                                                              radius)
     extra_column = """ haversine(c.ra, c.dec, {0}, {1}) as "_r (arcmin)",
-                   """.format(ra, decl, radius)
+                   """.format(ra, decl)
     return condition, extra_column
 
 
 def get_table_constraint(table, exists):
+    """
+    Create a table filter.
+    """
     return """ and %s (select 1
                          from data_references dr
                         where dr.cluster_uid = c.uid

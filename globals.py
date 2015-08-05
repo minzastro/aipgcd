@@ -9,6 +9,7 @@ from pysqlite2 import dbapi2 as sqlite3
 from jinja2 import Environment, FileSystemLoader
 import os
 import sqllist
+import re
 sqllist.load_defaults()
 
 # This is for the ARCHIE server distribution
@@ -158,7 +159,7 @@ def format_value(value, xformat):
     elif value is None or str(value).strip() == 'None':
         return ''
     else:
-        if xformat[-1] in 'gef':
+        if re.search(r'\d*\.\d+[gef]', xformat) is not None:
             return ('%%%s' % xformat) % float(value)
         elif xformat[-1] in 'd':
             return ('%%%s' % xformat) % int(value)

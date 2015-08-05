@@ -6,6 +6,7 @@ Created on Mon Dec  8 15:51:22 2014
 from prettiesttable import from_db_cursor, PrettiestTable
 from globals import get_conn, JINJA, get_brief_columns, format_value
 from globals import get_key_list
+from utils import key_subkey_cond
 from urllib import urlencode
 
 def single_cluster_update_comment(uid, comment):
@@ -51,32 +52,33 @@ def single_cluster_update_obs_flag(uid, obs_flag, obs_flag_source,
     return None
 
 
-def single_cluster_key_value_update(uid, key, key_value,
+def single_cluster_key_value_update(uid, old_key, key, key_value,
                                     key_err_low, key_err_high,
                                     key_comment):
     """
     Update per cluster key.
     """
-    if ',' in key:
-        key, subkey = key.split(',')
-    else:
-        subkey = ''
-    #TODO: support key changes.
+
+    old_key, _, subkey_cond = key_subkey_cond(old_key)
+    key, subkey, _ = key_subkey_cond(key)
     if subkey == '':
-        subkey_cond = 'subkey is null'
+        subkey = 'null'
     else:
-        subkey_cond = "subkey = '%s'" % subkey
+        subkey = '"%s"' % subkey
     CONN = get_conn()
     CONN.execute("""update per_cluster_keys
-                       set value = "%s",
+                       set key = "%s",
+                           subkey = %s,
+                           value = "%s",
                            value_error_low = "%s",
                            value_error_high = "%s",
                            comment = "%s"
                      where uid = %s
                        and key = "%s"
                        and %s
-                       """ % (key_value, key_err_low, key_err_high,
-                              key_comment, uid, key, subkey_cond))
+                       """ % (key, subkey,
+                              key_value, key_err_low, key_err_high,
+                              key_comment, uid, old_key, subkey_cond))
     CONN.commit()
     return None
 
@@ -154,7 +156,11 @@ def single_cluster(uid):
       join keys k on k.key = v.key
                  and ifnull(k.subkey, 'null') = ifnull(v.subkey, 'null')
      where v.uid = %s""" % uid):
-         par = {'name': key['key'],
+         if key['subkey'] is not None and key['subkey'] != '':
+             key_name = '%s,%s' % (key['key'], key['subkey'])
+         else:
+             key_name = key['key']
+         par = {'name': key_name,
                 'desc': key['description'],
                 'value': format_value(key['value'], key['output_format']),
                 'err_low': key['value_error_low'],
