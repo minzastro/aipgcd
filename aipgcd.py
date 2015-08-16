@@ -15,7 +15,8 @@ from single_cluster import single_cluster, \
                            single_cluster_update_comment, \
                            single_cluster_update_xid_flag, \
                            single_cluster_update_obs_flag, \
-                           single_cluster_key_value_update
+                           single_cluster_key_value_update, \
+                           single_cluster_key_delete
 from edit_tables import edit_tables
 from edit_table import edit_table, edit_table_update, \
                        list_table, \
@@ -74,6 +75,13 @@ class HelloWorld(object):
         return single_cluster_key_value_update(uid, old_key, key, key_value,
                                     key_err_low, key_err_high,
                                     key_comment)
+
+    @cherrypy.expose
+    def single_cluster_key_delete(self, **params):
+        uid = params['uid']
+        del(params['uid'])
+        return single_cluster_key_delete(uid, params.values())
+
     @cherrypy.expose
     def edit_tables(self):
         return edit_tables()

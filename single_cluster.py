@@ -94,6 +94,19 @@ def single_cluster_key_value_update(uid, old_key, key, key_value,
     return None
 
 
+def single_cluster_key_delete(uid, items):
+    conn = get_conn()
+    print items
+    for item in items:
+        key, subkey, subkey_cond = key_subkey_cond(item)
+        conn.execute("""delete from per_cluster_keys
+                         where uid = %s
+                         and key = '%s'
+                         and %s""" % (uid, key, subkey_cond))
+    conn.commit()
+    return None
+
+
 def select_cluster_key(uid, table_data, conn):
     params = []
     for key in conn.cursor().execute("""

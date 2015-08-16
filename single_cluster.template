@@ -79,12 +79,12 @@
             });
 
             $("#key_values tbody").on( 'click', 'tr', function (e){
-                if (e.ctrlKey){
-                    $(this).toggleClass('selected');
-                }
-                else {
-                    var row_data = $(this).children('td');
-                    if (row_data[5].innerText == 'User defined'){
+                var row_data = $(this).children('td');
+                if (row_data[5].innerText == 'User defined'){
+                    if (e.ctrlKey){
+                        $(this).toggleClass('selected');
+                    }
+                    else {
                         $("#dialog input[name='old_key']").val(row_data[0].innerText);
                         $("#dialog select[name='key_name']").val(row_data[0].innerText);
                         $("#dialog input[name='key_value']").val(row_data[2].innerText);
@@ -106,6 +106,22 @@
                $('#dialog').dialog('open');
             });
 
+            $('#delete_key').click(function(){
+                if (confirm('Really delete selected keys?')){
+                    items = []
+                    var data = $("#key_values").DataTable().rows('.selected').data();
+                    for (var i = 0; i < data.length; i++ ){
+                        items.push(data[i][0]);
+                    }
+                    $.post('single_cluster_key_delete', {uid: {{uid}},
+                                                         items: items},
+                                             function(response){
+                                                window.location.reload();
+                                             });
+                }
+            });
+
+
             $('#save_changes').click(function(){
                 var frm = document.getElementById('dialog');
                 $.post('single_cluster_key_value_update', {
@@ -121,21 +137,6 @@
                     $('#dialog').dialog('close');
                     window.location.reload();
                 });
-            });
-
-            $('#delete_key').click(function(){
-                if (confirm('Really delete selected keys?')){
-                    items = []
-                    var data = $("#key_list").DataTable().rows('.selected').data();
-                    alert(data.length);
-                    for (var i = 0; i < data.length; i++ ){
-                        items.push([data[i][0], data[i][1]]);
-                    }
-                    $.post('key_list_delete', {itemlist: items},
-                                             function(response){
-                                                window.location.reload();
-                                             });
-                }
             });
         });
     </script>
@@ -191,6 +192,7 @@
 <table id="key_values" class="compact hover" width=500 columns='SSSSSSS'>
     <caption>Main parameters
       <input type='button' id="new_key" value='Create custom key'/>
+      <input type='button' id="delete_key" value='Delete selected custom keys'/>
       <input type='button' onclick='samp_table("key_values", true)' value='Send to SAMP'/>
     </caption>
     <thead>
