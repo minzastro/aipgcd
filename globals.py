@@ -159,9 +159,13 @@ def format_value(value, xformat):
     elif value is None or str(value).strip() == 'None':
         return ''
     else:
-        if re.search(r'\d*\.\d+[gef]', xformat) is not None:
-            return ('%%%s' % xformat) % float(value)
-        elif xformat[-1] in 'd':
-            return ('%%%s' % xformat) % int(value)
-        else:
-            return ('%%%s' % xformat) % value
+        try:
+            if re.search(r'\d*\.\d+[gef]', xformat) is not None:
+                return ('%%%s' % xformat) % float(value)
+            elif xformat[-1] in 'd':
+                return ('%%%s' % xformat) % int(value)
+            else:
+                return ('%%%s' % xformat) % value
+        except ValueError:
+            # Wrongly formatted value will be returned as string
+            return str(value)

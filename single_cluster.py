@@ -60,25 +60,36 @@ def single_cluster_key_value_update(uid, old_key, key, key_value,
     """
 
     old_key, _, subkey_cond = key_subkey_cond(old_key)
-    key, subkey, _ = key_subkey_cond(key)
+    key, subkey, new_cond = key_subkey_cond(key)
     if subkey == '':
         subkey = 'null'
     else:
         subkey = '"%s"' % subkey
     CONN = get_conn()
-    CONN.execute("""update per_cluster_keys
-                       set key = "%s",
-                           subkey = %s,
-                           value = "%s",
-                           value_error_low = "%s",
-                           value_error_high = "%s",
-                           comment = "%s"
-                     where uid = %s
-                       and key = "%s"
-                       and %s
-                       """ % (key, subkey,
-                              key_value, key_err_low, key_err_high,
-                              key_comment, uid, old_key, subkey_cond))
+    if old_key == '' or old_key is None:
+        # This might be a new one or an update of an old one.
+        old_key = key
+        subkey_cond = new_cond
+    result = CONN.execute("""update per_cluster_keys
+                               set key = "%s",
+                                   subkey = %s,
+                                   value = "%s",
+                                   value_error_low = "%s",
+                                   value_error_high = "%s",
+                                   comment = "%s"
+                             where uid = %s
+                               and key = "%s"
+                               and %s
+                               """ % (key, subkey,
+                                      key_value, key_err_low, key_err_high,
+                                      key_comment, uid, old_key, subkey_cond))
+    if result.rowcount == 0:
+        # This was a new key...
+        CONN.execute("""insert into per_cluster_keys
+        (uid, key, subkey, value, value_error_low, value_error_high, comment)
+        values (%s, "%s", %s, "%s", "%s", "%s", "%s")""" % (uid, key, subkey,
+                                      key_value, key_err_low, key_err_high,
+                                      key_comment))
     CONN.commit()
     return None
 
