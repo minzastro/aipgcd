@@ -12,3 +12,7 @@ All cluster catalogs are saved as individual tables with all columns and rows pr
  - *reference_tables* - contains information on each catalog table: it's  name, origin, name of the unique column (used in *data_references*), 	list of columns to be presented in a 'brief' mode and some other... This information has to be provided during input via parameters or a config file. It can be partly modified afterwards.
  - *reference_tables_columns* - contains information on all columns in the catalogs, including data units, output format and comments. This information is collected automatically from the input file, but may be changed manually.
  - *reference_tables_keys* - contains information on the properties of the important values stored in the catalog, indicating catalog columns containing the important value itself, error columns and comment columns.
+ 
+Important values
+----------------
+Some values are considered 'important' (for example, redshift, X-ray flux or extent) and are shown in the cluster view in a separate table.
