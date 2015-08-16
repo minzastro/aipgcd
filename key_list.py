@@ -48,8 +48,7 @@ def key_list_update(key, subkey, description, format):
 
 def key_list_delete(itemlist):
     conn = get_conn()
-    for iitem in xrange(len(itemlist), step=2):
-        item = [itemlist[iitem], itemlist[iitem+1]]
+    for item in itemlist:
         if item[1] == '':
             subkey_cond = 'subkey is null'
         else:
@@ -58,6 +57,9 @@ def key_list_delete(itemlist):
                          where key = '%s'
                          and %s""" % (item[0], subkey_cond))
         conn.execute("""delete from reference_tables_keys
+                         where key = '%s'
+                         and %s""" % (item[0], subkey_cond))
+        conn.execute("""delete from per_cluster_keys
                          where key = '%s'
                          and %s""" % (item[0], subkey_cond))
     conn.commit()
