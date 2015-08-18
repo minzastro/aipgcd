@@ -37,3 +37,27 @@ Search results
 
 Cluster view
     Provides all available information on a single cluster. General information like positions is followed by NED/Simbad search links, links to surveys that cover the cluster area, list of important values and at the bottom - entries from the reference tables. For these entries table with *brief columns* defined for this reference table are shown. Click on the grey area below such table to drop down/collapse a larger table with full catalog record. For the list of important values there are buttons to add/delete a per-cluster key. Clicking on the per-cluster key opens edit dialog (per-cluster keys can be identified by the source column - the value for them is "User defined").
+
+Table list
+    Lists all reference tables (catalogs) in the database and provides ways for editing metadata and keys.
+    
+Key list
+    Provides list of all defined keys. It is possible to add, edit and delete keys. **Note:** if You delete a key, all entries in *reference_tables_keys* and *per_cluster_keys* will be deleted.
+    
+MOCs list
+    So far - just a list of MOCs with no editing allowed.
+    
+Scripts
+-------
+aipgcd.py
+    Main server script
+
+drop_table.py -t table_name
+    Deletes reference table and all its traces from DB. Use with care!
+
+importer.py
+    Flexible import tool with lots of parameters
+    
+mocify.py 
+    Tool to add a new MOC map into DB
+    
