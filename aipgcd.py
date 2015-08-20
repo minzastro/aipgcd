@@ -36,7 +36,7 @@ if os.path.abspath(__file__).startswith('/srv'):
 else:
     AIPGCD_URL = '127.0.0.1:8444'
 
-print AIPGCD_URL, os.path.abspath(__file__), __file__
+#print AIPGCD_URL, os.path.abspath(__file__), __file__
 
 def error_page_404(status, message, traceback, version):
     return "Error %s - Page does not exist yet. It might appear later!" % status

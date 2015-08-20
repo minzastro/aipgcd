@@ -9,7 +9,7 @@ import argparse
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy.extern.configobj.configobj import ConfigObj
-from globals import get_conn
+from globals import get_conn, DB_LOCATION
 from astropy import units as u
 from mocfinder import MOCFinder
 
@@ -205,7 +205,7 @@ def create_table(file_name, file_type, table_name, description,
         if t.lower() in colnames:
             table.rename_column(t, '%s_' % t)
         colnames.append(t.lower())
-    table.write('AIP_clusters.sqlite', format='sql', dbtype='sqlite')
+    table.write('%sAIP_clusters.sqlite' % DB_LOCATION, format='sql', dbtype='sqlite')
     print 'Table %s created' % table_name
     # Now proceed metadata:
     conn = get_conn()
