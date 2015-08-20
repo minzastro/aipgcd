@@ -279,63 +279,37 @@ if __name__ == '__main__':
         description="""Tool to import whole file-table into the database""",
         formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-f', '--file', type=str, default=None,
-                        help='input filename')
-
     parser.add_argument('-C', '--config', type=str, default=None,
                         help='config filename')
 
-    parser.add_argument('-d', '--delimiter', type=str, default=',',
-                        help='Field delimiter for ascii file')
-
-    parser.add_argument('-T', '--type', type=str, default=None,
-                        help='File type')
-
-    parser.add_argument('-t', '--table', type=str, default=None,
-                        help='Database table name')
-
-    parser.add_argument('-ra', '--ra', type=str, default=None,
-                        help='RA column name')
-
-    parser.add_argument('-de', '--dec', type=str, default=None,
-                        help='DE column name')
-
-    parser.add_argument('-u', '--uid', type=str, default=None,
-                        help='UID column name')
-
-    parser.add_argument('-D', '--description', type=str, default=None,
-                        help='Table description')
-
     args = parser.parse_args()
-    if args.config is None:
-        create_table(args.file, args.type, args.table, args.description,
-                     args.uid, args.ra, args.dec,
-                     delimiter=args.delimiter)
-    else:
-        config = ConfigObj(args.config)
-        main = config['main']
-        params = {}
-        for par in ['file_name', 'file_type', 'table_name', 'description',
-                    'uid_column', 'ra_column', 'dec_column', 'gal_l', 'gal_b',
-                    'brief_columns',
-                    'reference_table', 'reference_column',
-                    'xid_value', 'xid_comment',
-                    'obs_value', 'obs_comment',
-                    ]:
-            if par in main:
-                params[par] = main[par]
-        if 'brief_columns' in params:
-            params['brief_columns'] = ','.join(params['brief_columns'])
-        for key in params.keys():
-            if params[key] == '':
-                params[key] = None
-        create_table(**params)
-        for key in config['keys'].sections:
-            key_s = config['keys'][key]
-            key_par = {par: key_s[par] if par in key_s else None for par in ['reference', 'error_low',
-                                                                        'error_high', 'comment',
-                                                                        'comment_column']}
-            key_par['table'] = main['table_name']
-            key_par['key'] = key_s.name
-            create_key(**key_par)
+    config = ConfigObj(args.config)
+    main = config['main']
+    params = {}
+    for par in ['file_name', 'file_type', 'table_name', 'description',
+                'uid_column', 'ra_column', 'dec_column', 'gal_l', 'gal_b',
+                'brief_columns',
+                'reference_table', 'reference_column',
+                'xid_value', 'xid_comment',
+                'obs_value', 'obs_comment',
+                ]:
+        if par in main:
+            params[par] = main[par]
+    from os import path
+    config_file_dir = path.abspath(path.dirname(args.config))
+    params['file_name'] = '%s/%s' % (config_file_dir, params['file_name'])
+    if 'brief_columns' in params:
+        params['brief_columns'] = ','.join(params['brief_columns'])
+    for key in params.keys():
+        if params[key] == '':
+            params[key] = None
+    create_table(**params)
+    for key in config['keys'].sections:
+        key_s = config['keys'][key]
+        key_par = {par: key_s[par] if par in key_s else None for par in ['reference', 'error_low',
+                                                                    'error_high', 'comment',
+                                                                    'comment_column']}
+        key_par['table'] = main['table_name']
+        key_par['key'] = key_s.name
+        create_key(**key_par)
 
