@@ -7,8 +7,9 @@ from os import path
 NAME = '%s/..' % path.dirname(__file__)
 
 from mocfinder import MOCFinder
-from globals import get_conn, DB_LOCATION
+from globals import get_conn
 from glob import glob
+import sys
 
 def search_mocs(mocname, mocfile):
     conn = get_conn()
@@ -26,6 +27,6 @@ def search_mocs(mocname, mocfile):
     cur.close()
 
 if __name__ == '__main__':
-    for mocfile in glob('MOCs/*'):
-        mocname = mocfile[mocfile.index('_')+1:]
-        search_mocs(mocname[:-5], mocfile)
+    mocfile = sys.argv[1]
+    mocname = mocfile[mocfile.index('_')+1:]
+    search_mocs(mocname[:-5], mocfile)

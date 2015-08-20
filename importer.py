@@ -79,7 +79,7 @@ select uid, '{0}', source_id
         for uid in data[presence, 1]:
             result.append(""" insert into cluster_in_moc(uid, moc_name)
                               values (%s, '%s');""" % (uid, mocfinder.moc_name))
-    conn.execute(' '.join(result))
+    conn.executescript(' '.join(result))
 
 def cross_match(conn, table, ra_column, dec_column, gal_l, gal_b,
                 uid_column, table_name):
