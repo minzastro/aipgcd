@@ -113,6 +113,7 @@ def vo_cone_search(args):
     conditions = []
     if 'fullsky' not in args:
         constraint, extra_columns = get_cone_search_constraint(args)
+        conditions.append(constraint)
     else:
         extra_columns = ''
     if 'in_table' in args:

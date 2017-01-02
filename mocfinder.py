@@ -43,27 +43,25 @@ class MOCFinder(object):
         Check if position is in the MOC map.
         ra, decl - sky coordinates (or lists of coordinates).
         """
+        ra = np.atleast_1d(ra)
+        decl = np.atleast_1d(decl)
         theta = 0.5*np.pi - np.radians(decl)
         phi = np.radians(ra)
         keys = self.healpix.keys()
         keys.sort()
-        if isinstance(ra, float):
-            for level in keys:
-                healpix_cell = healpy.ang2pix(2**level, theta, phi, nest=True)
-                if healpix_cell in self.healpix[level]:
-                    return True
-            return False
-        else:
-            result = np.zeros(len(ra), dtype=bool)
-            for level in keys:
-                healpix_cell = healpy.ang2pix(2**level, theta, phi, nest=True)
-                cellcheck = [cell in self.healpix[level] for cell in healpix_cell]
-                if cellcheck.any():
-                    result = result + cellcheck
-                if result.all():
-                    return result
-            return result
-
+        todo = np.ones(len(ra), dtype=bool)
+        fullmask = np.arange(len(ra), dtype=int)
+        for level in keys:
+            healpix_cell = healpy.ang2pix(2**level, theta[todo], phi[todo],
+                                          nest=True)
+            mask = np.copy(fullmask[todo])
+            for icell, cell in enumerate(healpix_cell):
+                if cell in self.healpix[level]:
+                    try:
+                        todo[mask[icell]] = False
+                    except IndexError:
+                        import ipdb; ipdb.set_trace()
+        return ~todo
 
     def get_area(self):
         area = 0.

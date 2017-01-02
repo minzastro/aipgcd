@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 Created on Mon Dec  8 14:49:34 2014
 @author: mints
