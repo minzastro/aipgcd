@@ -3,11 +3,11 @@
 Created on Mon Dec  8 15:51:22 2014
 @author: mints
 """
-from prettiesttable import from_db_cursor, PrettiestTable
-from globals import get_conn, JINJA, get_brief_columns, format_value
-from globals import get_key_list
-from utils import key_subkey_cond
-from urllib import urlencode
+from .prettiesttable import from_db_cursor, PrettiestTable
+from .globals import get_conn, JINJA, get_brief_columns, format_value
+from .globals import get_key_list
+from .utils import key_subkey_cond
+from urllib.parse import urlencode
 
 def single_cluster_update_comment(uid, comment):
     """
@@ -96,7 +96,7 @@ def single_cluster_key_value_update(uid, old_key, key, key_value,
 
 def single_cluster_key_delete(uid, items):
     conn = get_conn()
-    print items
+    print(items)
     for item in items:
         key, subkey, subkey_cond = key_subkey_cond(item)
         conn.execute("""delete from per_cluster_keys
@@ -135,7 +135,7 @@ def select_cluster_key(uid, table_data, conn):
                   where r.cluster_uid = {uid}
                     and r.reference_table = '{table_name}'""".format(**ext_row)).fetchall()
         for value in values:
-            print value['reference_column'], key['output_format']
+            print(value['reference_column'], key['output_format'])
             par = {'name': key['key'],
                    'desc': key['description'],
                    'value': format_value(value['reference_column'], key['output_format']),

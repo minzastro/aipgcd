@@ -2,7 +2,7 @@
 SQL bindings for AstroPy tables.
 Most of this code was inherited from ATpy.
 """
-from __future__ import print_function, division
+
 
 from distutils import version
 import numpy as np

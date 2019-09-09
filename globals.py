@@ -4,11 +4,11 @@ Created on Mon Dec 15 21:00:29 2014
 
 @author: minz
 """
-
-from pysqlite2 import dbapi2 as sqlite3
+from sqlite3 import dbapi2 as sqlite3
+#from pysqlite2 import dbapi2 as sqlite3
 from jinja2 import Environment, FileSystemLoader
 import os
-import sqllist
+from . import sqllist
 import re
 sqllist.load_defaults()
 
@@ -19,7 +19,7 @@ else:
     DB_LOCATION = ''
 
 
-JINJA = Environment(loader=FileSystemLoader('.'))
+JINJA = Environment(loader=FileSystemLoader('templates'))
 
 
 def get_conn(dict_row=False):
@@ -28,7 +28,7 @@ def get_conn(dict_row=False):
     Loads custom extension with lots of useful functions.
     """
     conn = sqlite3.connect('%sAIP_clusters.sqlite' % DB_LOCATION)
-    print DB_LOCATION
+    print(DB_LOCATION)
     conn.enable_load_extension(True)
     conn.execute("select load_extension('%s/sqlite_extentions/libsqlitefunctions.so')" % os.path.dirname(__file__))
     conn.enable_load_extension(False)
@@ -46,7 +46,7 @@ def null_condition(column, value):
     """
     if value is None or value == 'None' or value == 'none':
         return '%s is null' % column
-    elif isinstance(value, str) or isinstance(value, unicode):
+    elif isinstance(value, str) or isinstance(value, str):
         # Add quotes to condition
         return '%s = "%s"' % (column, value)
     else:
@@ -64,10 +64,10 @@ def nullify(value):
         if value == '':
             return 'null'
         return '"%s"' % value
-    elif isinstance(value, unicode):
-        if value == u'':
+    elif isinstance(value, str):
+        if value == '':
             return 'null'
-        return u'"%s"' % value
+        return '"%s"' % value
     else:
         return value
 
@@ -135,7 +135,7 @@ def get_brief_columns(table, masks, negate=True):
     col = get_table_columns(table)
     matched = []
     for mask in masks:
-        matched.extend(filter(col, mask))
+        matched.extend(list(filter(col, mask)))
     if negate:
         result_set = set(col) - set(matched)
     else:

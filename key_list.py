@@ -3,8 +3,8 @@
 Created on Wed Jan 14 18:21:14 2015
 @author: mints
 """
-from prettiesttable import from_db_cursor
-from globals import get_conn, JINJA
+from .prettiesttable import from_db_cursor
+from .globals import get_conn, JINJA
 
 def key_list():
     t = JINJA.get_template('key_list.template')
@@ -26,20 +26,20 @@ def key_list_update(key, subkey, description, format):
         subkey_cond = 'subkey is null'
     else:
         subkey_cond = "subkey = '%s'" % subkey
-    check = conn.execute(u"""select count(*)
+    check = conn.execute("""select count(*)
                                from keys
                               where key = '%s'
                                 and %s""" % (key, subkey_cond)).fetchone()[0]
-    print subkey_cond
+    print(subkey_cond)
     if check > 0:
-        conn.execute(u"""update keys
+        conn.execute("""update keys
                             set description = '%s',
                                 data_format = '%s'
                               where key = '%s'
                                 and %s""" % (description, format,
                                               key, subkey_cond))
     else:
-        conn.execute(u"""
+        conn.execute("""
          insert into keys (key, subkey, description, data_format)
          values ('%s', nullif('%s', ''), '%s', '%s');
         """ % (key, subkey, description, format))

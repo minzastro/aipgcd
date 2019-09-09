@@ -5,12 +5,12 @@ Created on Wed Feb 11 17:02:04 2015
 """
 import numpy as np
 from astropy.table import Table as ATable
-from globals import get_conn, sqllist
+from .globals import get_conn, sqllist
 from tempfile import NamedTemporaryFile, mkdtemp
 import simplejson as json
 
 VO_TYPES = {int: 'I8',
-            unicode: 'S',
+            str: 'S',
             float: 'F8',
             bool: 'bool'}
 
@@ -18,10 +18,10 @@ def data_to_votable(coltypes, header, data):
     coltypes = list(coltypes)
     data = json.loads(data)
     data = np.array(data)
-    data = zip(*data)
-    print header, coltypes, len(data), data[0]
-    for irow in xrange(len(data)):
-        print data[irow][0], coltypes[irow]
+    data = list(zip(*data))
+    print(header, coltypes, len(data), data[0])
+    for irow in range(len(data)):
+        print(data[irow][0], coltypes[irow])
         if coltypes[irow].lower() == 'i':
             data[irow] = np.genfromtxt(data[irow], dtype=np.int,
                                        missing_values='None',
@@ -55,9 +55,9 @@ def sql_to_file(sql, output_name='default', write_format='ascii',
         max_len.append(0)
         column_types.append(VO_TYPES[type(item)])
     for row in data:
-        print row
+        print(row)
         for icol, coltype in enumerate(column_types):
-            print icol, coltype
+            print(icol, coltype)
             if coltype == 'S' and row[icol] is not None:
                 if max_len[icol] < len(row[icol]):
                     max_len[icol] = len(row[icol])
@@ -67,7 +67,7 @@ def sql_to_file(sql, output_name='default', write_format='ascii',
     if len(data) == 0:
         table = ATable(names=column_names, dtype=column_types)
     else:
-        table = ATable(data=zip(*data), names=column_names, dtype=column_types)
+        table = ATable(data=list(zip(*data)), names=column_names, dtype=column_types)
     if output_name is not None:
         if automatic_extention:
             file_name = '%s.%s' % (output_name, write_format)

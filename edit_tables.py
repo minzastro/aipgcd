@@ -4,7 +4,7 @@ Created on Mon Dec 15 21:03:38 2014
 
 @author: minz
 """
-from globals import get_conn, JINJA
+from .globals import get_conn, JINJA
 
 def edit_tables():
     """

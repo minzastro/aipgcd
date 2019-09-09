@@ -3,8 +3,8 @@
 Created on Wed Jan 14 18:21:14 2015
 @author: mints
 """
-from prettiesttable import from_db_cursor
-from globals import get_conn, JINJA
+from .prettiesttable import from_db_cursor
+from .globals import get_conn, JINJA
 
 def moc_list():
     t = JINJA.get_template('moc_list.template')

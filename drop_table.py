@@ -32,4 +32,4 @@ if __name__ == '__main__':
                         help='Table name')
     args = parser.parse_args()
     drop_table(args.table)
-    print 'Done'
+    print('Done')

@@ -4,9 +4,9 @@ Created on Mon Dec 15 21:22:39 2014
 
 @author: minz
 """
-from prettiesttable import from_db_cursor
-from globals import get_conn, JINJA
-from utils import dict_values_to_list
+from .prettiesttable import from_db_cursor
+from .globals import get_conn, JINJA
+from .utils import dict_values_to_list
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
@@ -117,7 +117,7 @@ def vo_cone_search(args):
     else:
         extra_columns = ''
     if 'in_table' in args:
-        if isinstance(args['in_table'], basestring):
+        if isinstance(args['in_table'], str):
             conditions.append(get_table_constraint(args['has_record'],
                                                    args['in_table']))
         else:
@@ -173,7 +173,7 @@ def vo_cone_search(args):
                 %s
               group by c.uid, ra, dec, c.source, source_id
               order by c.ra""" % (extra_columns, ' '.join(conditions))
-    print sql
+    print(sql)
     t1 = from_db_cursor(conn.execute(sql))
     t1.float_format['ra'] = '.5f'
     t1.float_format['dec'] = '.5f'

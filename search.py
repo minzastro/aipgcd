@@ -4,8 +4,8 @@ Created on Thu Mar  5 17:06:56 2015
 @author: mints
 """
 
-from globals import JINJA, get_conn, get_key_list
-from utils import quoted_list, quoted_list_item
+from .globals import JINJA, get_conn, get_key_list
+from .utils import quoted_list, quoted_list_item
 
 def search():
     t = JINJA.get_template('search.template')

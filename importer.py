@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Created on Mon Dec  8 14:49:34 2014
 @author: mints
@@ -9,9 +9,9 @@ import argparse
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy.extern.configobj.configobj import ConfigObj
-from globals import get_conn, DB_LOCATION
+from aipgcd.globals import get_conn, DB_LOCATION
 from astropy import units as u
-from mocfinder import MOCFinder
+from aipgcd.mocfinder import MOCFinder
 
 
 def get_field_datatype(field):
@@ -59,26 +59,30 @@ select uid, '{0}', source_id
     data = conn.execute("""select uid, ra, dec from clusters
                             where source = '%s'""" % table_name).fetchall()
     data = np.array(data)
-    print 'Inserted %s new clusters' % len(data)
+    print('Inserted %s new clusters' % len(data))
     if update_gal:
-        print 'Updating galactic coordinates'
+        print('Updating galactic coordinates')
         sky = SkyCoord(data[:, 1], data[:, 2], frame='icrs', unit='deg')
         gal = sky.galactic
+        conn.execute("BEGIN")
         for irow, uid in enumerate(data[:, 0]):
             conn.execute("""
               update clusters
                  set gal_l = %s, gal_b = %s
                where uid = %s""" % (gal[irow].l.deg, gal[irow].b.deg, uid))
+        conn.execute("COMMIT")
     mocs = conn.execute("""select moc_name, moc_file
                              from mocs
                             where not is_full_sky""").fetchall()
     mocfinders = [MOCFinder(moc_file, moc_name) for moc_name, moc_file in mocs]
-    result = []
+    result = ['BEGIN;']
     for mocfinder in mocfinders:
+        print('Processing moc %s ' % mocfinder.moc_name)
         presence = mocfinder.is_in(data[:, 1], data[:, 2])
-        for uid in data[presence, 1]:
+        for uid in data[presence, 0]:
             result.append(""" insert into cluster_in_moc(uid, moc_name)
                               values (%s, '%s');""" % (uid, mocfinder.moc_name))
+    result.append('COMMIT;')
     conn.executescript(' '.join(result))
 
 def cross_match(conn, table, ra_column, dec_column, gal_l, gal_b,
@@ -95,7 +99,7 @@ def cross_match(conn, table, ra_column, dec_column, gal_l, gal_b,
         starget = SkyCoord(table[ra_column].data, table[dec_column].data,
                            unit='deg')
         matches = smatch.search_around_sky(starget, (1./60.)*u.deg)
-        for match in xrange(len(matches[0])):
+        for match in range(len(matches[0])):
             # Save all found matches
             conn.execute("""
             insert into data_references
@@ -103,7 +107,7 @@ def cross_match(conn, table, ra_column, dec_column, gal_l, gal_b,
             values (%s, '%s', %s)""" % (int(data[matches[1][match], 2]),
                                         table_name,
                                         table[uid_column].data[matches[0][match]]))
-        print "Inserted %s references" % len(matches[0])
+        print("Inserted %s references" % len(matches[0]))
 
 
 def create_key(table, key, reference, error_low, error_high, comment,
@@ -206,7 +210,7 @@ def create_table(file_name, file_type, table_name, description,
             table.rename_column(t, '%s_' % t)
         colnames.append(t.lower())
     table.write('%sAIP_clusters.sqlite' % DB_LOCATION, format='sql', dbtype='sqlite')
-    print 'Table %s created' % table_name
+    print('Table %s created' % table_name)
     # Now proceed metadata:
     conn = get_conn()
     conn.execute("""create unique index idx_{0}_uid
@@ -219,7 +223,7 @@ def create_table(file_name, file_type, table_name, description,
                  "'%s', 'true', 0)" % (table_name, uid_column,
                                       description, ra_column, dec_column,
                                       brief_columns))
-    for colname in table.columns.keys():
+    for colname in list(table.columns.keys()):
         column = table.columns[colname]
         form = column.format[1:] if column.format is not None else 's'
         if 'ucd' in column.meta:
@@ -256,7 +260,7 @@ def create_table(file_name, file_type, table_name, description,
                                                   rt_uid,
                                                   reference_column,
                                                   uid_column)
-        print sql
+        print(sql)
         conn.execute(sql)
 
     insert_clusters(conn, table_name, uid_column, ra_column, dec_column,
@@ -272,7 +276,7 @@ def create_table(file_name, file_type, table_name, description,
                      flag_comment=obs_comment,
                      uid_column=uid_column)
     conn.commit()
-    print 'Done'
+    print('Done')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -300,7 +304,7 @@ if __name__ == '__main__':
     params['file_name'] = '%s/%s' % (config_file_dir, params['file_name'])
     if 'brief_columns' in params:
         params['brief_columns'] = ','.join(params['brief_columns'])
-    for key in params.keys():
+    for key in list(params.keys()):
         if params[key] == '':
             params[key] = None
     create_table(**params)

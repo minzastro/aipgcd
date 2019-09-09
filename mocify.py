@@ -6,8 +6,8 @@ Created on Thu Apr 23 16:00:45 2015
 from os import path
 NAME = '%s/..' % path.dirname(__file__)
 
-from mocfinder import MOCFinder
-from globals import get_conn
+from .mocfinder import MOCFinder
+from .globals import get_conn
 from glob import glob
 import sys
 
@@ -22,7 +22,7 @@ def search_mocs(mocname, mocfile):
         if moc.is_in(ra, dec):
             conn.execute("""insert into cluster_in_moc (uid, moc_name)
                             values (%s, '%s')""" % (uid, mocname))
-        print mocname, uid
+        print(mocname, uid)
     conn.commit()
     cur.close()
 

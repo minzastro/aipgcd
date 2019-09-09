@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+
 """
 SQL bindings for AstroPy tables.
 Most of this code was inherited from ATpy.
@@ -137,7 +137,7 @@ def read(input, dbtype='sqlite', *args, **kwargs):
     if not query or dbtype == 'sqlite':
         if atable==None:
             if len(table_names) == 1:
-                table_name = table_names.keys()[0]
+                table_name = list(table_names.keys())[0]
             else:
                 raise TableException(table_names, 'table')
         else:
@@ -163,7 +163,7 @@ def read(input, dbtype='sqlite', *args, **kwargs):
         cursor.execute(query)
 
         if dbtype == 'sqlite':
-            column_types_dict = dict(zip(column_names, column_types))
+            column_types_dict = dict(list(zip(column_names, column_types)))
         else:
             column_types_dict = None
 
@@ -232,7 +232,7 @@ def write(input, output, dbtype='sqlite', *args, **kwargs):
 
     # Check if table already exists
 
-    existing_tables = sql.list_tables(cursor, dbtype).values()
+    existing_tables = list(sql.list_tables(cursor, dbtype).values())
     if table_name in existing_tables or \
         table_name.lower() in existing_tables:
         if overwrite:
@@ -241,7 +241,7 @@ def write(input, output, dbtype='sqlite', *args, **kwargs):
             raise ExistingTableException()
 
     # Create table
-    columns = [(name, input.columns[name].dtype.type) for name in input.columns.keys()]
+    columns = [(name, input.columns[name].dtype.type) for name in list(input.columns.keys())]
     sql.create_table(cursor, dbtype, table_name, columns)
     # Insert row
     for row in input.as_array():

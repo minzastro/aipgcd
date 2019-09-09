@@ -4,10 +4,10 @@ Created on Mon Dec 15 21:22:39 2014
 
 @author: minz
 """
-from prettiesttable import from_db_cursor
-from globals import get_conn, JINJA
-from globals import get_table_columns
-from globals import null_condition, nullify, get_key_list
+from .prettiesttable import from_db_cursor
+from .globals import get_conn, JINJA
+from .globals import get_table_columns
+from .globals import null_condition, nullify, get_key_list
 
 
 def edit_table(table):
@@ -110,7 +110,7 @@ def edit_table_key_delete(table, uid):
     Delete
     """
     conn = get_conn()
-    conn.execute(u"""
+    conn.execute("""
     delete from reference_tables_keys
      where reference_table = '%s'
        and uid = %s""" % (table, uid))
@@ -128,13 +128,13 @@ def edit_table_key_update(table, mode, uid, key,
     else:
         subkey = None
     if uid != '':
-        check = conn.execute(u"""select key
+        check = conn.execute("""select key
                                    from reference_tables_keys
                                   where uid = %s""" % uid).rowcount
     else:
         check = 0
     if mode == 'edit' or check > 0:
-        conn.execute(u"""
+        conn.execute("""
             update reference_tables_keys
                set reference_column = %s,
                    error_column_low = %s,
@@ -161,7 +161,7 @@ def edit_table_key_update(table, mode, uid, key,
         if r1.rowcount > 0:
             return "Already exists!"
         else:
-            conn.execute(u"""
+            conn.execute("""
             insert into reference_tables_keys(reference_table, key, subkey,
                 reference_column, error_column_low, error_column_high, comment)
             values ("%s", "%s", %s, %s, %s, %s, %s)

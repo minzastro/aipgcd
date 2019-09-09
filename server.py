@@ -11,23 +11,23 @@ sys.path.insert(0, path.abspath(path.dirname(__file__)))
 
 import cherrypy
 #from cherrypy.lib.static import serve_file
-from single_cluster import single_cluster, \
+from aipgcd.single_cluster import single_cluster, \
                            single_cluster_update_comment, \
                            single_cluster_update_xid_flag, \
                            single_cluster_update_obs_flag, \
                            single_cluster_key_value_update, \
                            single_cluster_key_delete
-from edit_tables import edit_tables
-from edit_table import edit_table, edit_table_update, \
+from aipgcd.edit_tables import edit_tables
+from aipgcd.edit_table import edit_table, edit_table_update, \
                        list_table, \
                        edit_table_key_delete, edit_table_key_update, \
                        edit_table_update_column
-from key_list import key_list, key_list_update, key_list_delete
-from moc_list import moc_list
-from vo_cone_search import vo_cone_search
-from search import search
-from samp import data_to_votable
-from globals import get_subkey_list, get_key_description, \
+from aipgcd.key_list import key_list, key_list_update, key_list_delete
+from aipgcd.moc_list import moc_list
+from aipgcd.vo_cone_search import vo_cone_search
+from aipgcd.search import search
+from aipgcd.samp import data_to_votable
+from aipgcd.globals import get_subkey_list, get_key_description, \
                     get_table_columns
 import os
 
@@ -36,7 +36,7 @@ if os.path.abspath(__file__).startswith('/srv'):
 else:
     AIPGCD_URL = '127.0.0.1:8444'
 
-print AIPGCD_URL, os.path.abspath(__file__), __file__
+print(AIPGCD_URL, os.path.abspath(__file__), __file__)
 
 def error_page_404(status, message, traceback, version):
     return "Error %s - Page does not exist yet. It might appear later!" % status
@@ -80,7 +80,7 @@ class HelloWorld(object):
     def single_cluster_key_delete(self, **params):
         uid = params['uid']
         del(params['uid'])
-        return single_cluster_key_delete(uid, params.values())
+        return single_cluster_key_delete(uid, list(params.values()))
 
     @cherrypy.expose
     def edit_tables(self):
@@ -110,8 +110,8 @@ class HelloWorld(object):
 
     @cherrypy.expose
     def key_list_delete(self, **params):
-        print params
-        return key_list_delete(params.values())
+        print(params)
+        return key_list_delete(list(params.values()))
 
     @cherrypy.expose
     def edit_table_key_delete(self, table, uid):
@@ -146,7 +146,7 @@ class HelloWorld(object):
 
     @cherrypy.expose
     def vo_cone_search(self, **params):
-        print params
+        print(params)
         return vo_cone_search(params)
 
     @cherrypy.expose

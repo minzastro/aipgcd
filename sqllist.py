@@ -108,4 +108,4 @@ def get_sql(name, *params):
 
 
 if __name__ == '__main__':
-    print get_sql(sys.argv[1], sys.argv[2:])
+    print(get_sql(sys.argv[1], sys.argv[2:]))

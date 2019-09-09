@@ -13,7 +13,7 @@ def quoted_list_item(data, item):
 def dict_values_to_list(args, keys):
     for valid in keys:
         if valid in args:
-            if isinstance(args[valid], basestring):
+            if isinstance(args[valid], str):
                 args[valid] = [args[valid]]
     return args
 

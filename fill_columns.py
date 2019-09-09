@@ -10,7 +10,7 @@ Proper job is to be done by import script.
 
 import sys
 from astropy.io import fits
-from globals import get_conn
+from .globals import get_conn
 
 COLUMN_FORMATS_FITS = {
     'J': 'integer',
@@ -30,7 +30,7 @@ column_names = []
 conn = get_conn()
 
 for coldef in f.columns:
-    print coldef.name, coldef.unit, coldef.format
+    print(coldef.name, coldef.unit, coldef.format)
     if coldef.unit is not None:
         unit = coldef.unit
     else:

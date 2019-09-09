@@ -47,7 +47,7 @@ class MOCFinder(object):
         decl = np.atleast_1d(decl)
         theta = 0.5*np.pi - np.radians(decl)
         phi = np.radians(ra)
-        keys = self.healpix.keys()
+        keys = list(self.healpix.keys())
         keys.sort()
         todo = np.ones(len(ra), dtype=bool)
         fullmask = np.arange(len(ra), dtype=int)
@@ -65,10 +65,10 @@ class MOCFinder(object):
 
     def get_area(self):
         area = 0.
-        for level in self.healpix.keys():
+        for level in list(self.healpix.keys()):
             area = area + cell_area(level) * len(self.healpix[level])
         return area
 
 if __name__ == '__main__':
     moc_finder = MOCFinder('../data/MOC_sdss.fits')
-    print moc_finder.is_in(270., 24.)
+    print(moc_finder.is_in(270., 24.))
