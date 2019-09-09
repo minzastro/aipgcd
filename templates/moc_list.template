@@ -38,7 +38,7 @@
 
 <body>
 
-{% include "/static/navigation_bar.html"  %}
+{% include "navigation_bar.html"  %}
 {{ moc_list }}
 
 </body>

@@ -36,7 +36,7 @@
 </head>
 
 <body>
-    {% include "./static/navigation_bar.html"  %}
+    {% include "navigation_bar.html"  %}
     <!--<ul id='menu_wrap' class='l_blue'>
       <li><a href="../index">Home</a></li>
       <li><a href='../edit_tables'>List tables</a></li>

@@ -102,7 +102,7 @@
 
 <body>
 
-{% include "/static/navigation_bar.html"  %}
+{% include "navigation_bar.html"  %}
 <input type="button" id="new_key" value="Add new key"/>
 <input type="button" id="delete_key" value="Delete selected keys"/>
 <p>Or click on row to edit...</p>
